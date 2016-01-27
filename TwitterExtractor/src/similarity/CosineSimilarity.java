@@ -1,0 +1,71 @@
+package similarity;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import twitter.tracker.hibernate.TwitterAccount;
+
+public class CosineSimilarity {
+	
+	/**
+     * Method to calculate cosine similarity between two documents.
+     * @param docVector1 : document vector 1 (a)
+     * @param docVector2 : document vector 2 (b)
+     * @return 
+     */
+    public double cosineSimilarity(double[] docVector1, double[] docVector2) 
+    {
+        double dotProduct = 0.0;
+        double magnitude1 = 0.0;
+        double magnitude2 = 0.0;
+        double cosineSimilarity = 0.0;
+ 
+        for (int i = 0; i < docVector1.length; i++) //docVector1 and docVector2 must be of same length
+        {
+            dotProduct += docVector1[i] * docVector2[i];  //a.b
+            magnitude1 += Math.pow(docVector1[i], 2);  //(a^2)
+            magnitude2 += Math.pow(docVector2[i], 2); //(b^2)
+        }
+ 
+        magnitude1 = Math.sqrt(magnitude1);//sqrt(a^2)
+        magnitude2 = Math.sqrt(magnitude2);//sqrt(b^2)
+ 
+        if (magnitude1 != 0.0 | magnitude2 != 0.0)
+        {
+            cosineSimilarity = dotProduct / (magnitude1 * magnitude2);
+        } 
+        else
+        {
+            return 0.0;
+        }
+        return cosineSimilarity;
+    }
+    
+    public List<TwitterAccount> getHighestsCosineValuedUsers(Map<Double, String> similarityDic, int n){
+    	
+    	List<Double> orderedCosineValues = new ArrayList<Double>();
+    	List<TwitterAccount> highValuedCosineUsers = new ArrayList<TwitterAccount>();
+    	
+    	for(Double cosineValue: similarityDic.keySet()){
+    		orderedCosineValues.add(cosineValue);
+    	}
+    	
+    	Collections.sort(orderedCosineValues);
+		Collections.reverse(orderedCosineValues);
+		
+		double cosine;
+		TwitterAccount user;
+		for(int i = 0; i < n; i++){
+			cosine = orderedCosineValues.get(i);
+			
+			user = new TwitterAccount(similarityDic.get(cosine));
+			user.setCosineSimilarity(cosine);			
+			highValuedCosineUsers.add(user);
+		}
+    	
+		return highValuedCosineUsers;
+    }
+
+}

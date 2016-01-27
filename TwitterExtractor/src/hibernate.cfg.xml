@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 5.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration">
+
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="connection.driver_class">org.postgresql.Driver</property>
+        <property name="connection.url">jdbc:postgresql://localhost:5432/db-twitter</property>
+        <property name="connection.username">postgres</property>
+        <property name="connection.password">mra041328</property>     
+        <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>        
+        
+        <property name="show_sql">false</property>
+        <property name="hbm2ddl.auto">update</property>
+        <property name="hibernate.temp.use_jdbc_metadata_defaults">false</property> 
+        
+        <property name="log4j.logger.org.hibernate">error</property> 
+        <property name="org.hibernate">none</property>    
+        
+        
+
+   
+        
+  
+  	<mapping class="persistence.entities.hibernate.UserAccount"/>
+ 	<mapping class="persistence.entities.hibernate.List"/>  
+    <mapping class="persistence.entities.hibernate.Tweet"/>
+    <mapping class="persistence.entities.hibernate.Hashtag"/>
+    <mapping class="persistence.entities.hibernate.URL"/>
+    
+          
+    </session-factory>
+</hibernate-configuration>

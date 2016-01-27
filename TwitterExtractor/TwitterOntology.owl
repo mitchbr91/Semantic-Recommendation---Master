@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY swrl "http://www.w3.org/2003/11/swrl#" >
+    <!ENTITY swrlb "http://www.w3.org/2003/11/swrlb#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY TwitterOntology "http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#" >
+    <!ENTITY untitled-ontology-5 "http://www.semanticweb.org/michel/ontologies/2014/6/untitled-ontology-5#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="http://www.w3.org/2002/07/owl"
+     xmlns:TwitterOntology="http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:swrlb="http://www.w3.org/2003/11/swrlb#"
+     xmlns:swrl="http://www.w3.org/2003/11/swrl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:untitled-ontology-5="http://www.semanticweb.org/michel/ontologies/2014/6/untitled-ontology-5#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <Ontology rdf:about="http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#equalHashtagsRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;equalHashtagsRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#equalURLsRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;equalURLsRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#favorites -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;favorites">
+        <rdfs:range rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#favoritesRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;favoritesRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#hasMember -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;hasMember">
+        <rdfs:domain rdf:resource="&TwitterOntology;List"/>
+        <rdfs:range rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#hashtagContainedInTweetRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;hashtagContainedInTweetRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#hashtagSubstringListDescriptionRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;hashtagSubstringListDescriptionRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#hashtagSubstringListNameRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;hashtagSubstringListNameRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#listContainsFollowee -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;listContainsFollowee"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#mentions -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;mentions">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#mentionsRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;mentionsRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#owns -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;owns">
+        <rdfs:range rdf:resource="&TwitterOntology;List"/>
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#posts -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;posts">
+        <rdfs:range rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#replies -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;replies">
+        <rdfs:range rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#repliesRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;repliesRule"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#retweets -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;retweets">
+        <rdfs:range rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+    </ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#retweetsRule -->
+
+    <ObjectProperty rdf:about="&TwitterOntology;retweetsRule"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#createdAt -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;createdAt">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#description -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;description">
+        <rdfs:domain rdf:resource="&TwitterOntology;List"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#hashtag -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;hashtag">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#id -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;id">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&xsd;long"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#idList -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;idList">
+        <rdfs:domain rdf:resource="&TwitterOntology;List"/>
+        <rdfs:range rdf:resource="&xsd;long"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#name -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;name">
+        <rdfs:domain rdf:resource="&TwitterOntology;List"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#screenname -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;screenname">
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#text -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;text">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#url -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;url">
+        <rdfs:domain rdf:resource="&TwitterOntology;Tweet"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#urlpage -->
+
+    <DatatypeProperty rdf:about="&TwitterOntology;urlpage">
+        <rdfs:domain rdf:resource="&TwitterOntology;TwitterAccount"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#List -->
+
+    <Class rdf:about="&TwitterOntology;List"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#Tweet -->
+
+    <Class rdf:about="&TwitterOntology;Tweet"/>
+    
+
+
+    <!-- http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#TwitterAccount -->
+
+    <Class rdf:about="&TwitterOntology;TwitterAccount"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
+
