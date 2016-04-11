@@ -20,8 +20,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 
-import businessLogic.TwitterAccount;
-
 import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.util.SilentExplanationProgressMonitor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;

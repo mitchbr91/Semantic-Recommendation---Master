@@ -1,23 +1,10 @@
 package persistence.test;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-import inference.InferenceManager;
-import inference.Metrics;
-import persistence.dao.ListDao;
-import persistence.dao.TweetDao;
-import persistence.dao.UserDao;
-import persistence.entities.UserAccount;
-import similarity.SimilarityManager;
 import similarity.TweetsTreater;
 import twitter.tracker.hibernate.DataSetAnnotator;
-import twitter.tracker.hibernate.DataSetExtractor;
-import twitter.tracker.hibernate.TwitterAccount;
-import twitter4j.Paging;
 import twitter4j.Twitter;
-import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.User;
 
@@ -27,10 +14,8 @@ public class Main {
 			
 		String ontologyIRI = "http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology";
 		
-		//Metrics metrics = new Metrics("db-twitter-ordinary");	
-		ListDao daoList = new ListDao("db-twitter-ordinary");
-		UserDao daoUser = new UserDao("db-twitter-ordinary");
-		TweetDao daoTweet = new TweetDao("db-twitter-ordinary");
+		//Metrics metrics = new Metrics("db-twitter-ordinary");
+	
 		TweetsTreater treater = new TweetsTreater();
 		DataSetAnnotator annotator = new DataSetAnnotator(ontologyIRI);
 		//DataSetExtractor extractor = new DataSetExtractor("db-twitter-ordinary");
