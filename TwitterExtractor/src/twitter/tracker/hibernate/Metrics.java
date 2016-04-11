@@ -1,4 +1,4 @@
-package businessLogic;
+package twitter.tracker.hibernate;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import businessLogic.MyComparator;
+import businessLogic.TwitterAccount;
 
 public class Metrics {
 	
