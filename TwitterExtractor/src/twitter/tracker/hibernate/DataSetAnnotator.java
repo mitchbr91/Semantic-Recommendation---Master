@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,6 +35,7 @@ import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 
+import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.Hashtag;
 import persistence.entities.hibernate.Tweet;
 import persistence.entities.hibernate.URL;
@@ -46,67 +48,98 @@ public class DataSetAnnotator {
     private OWLDataFactory factory;
     private PrefixManager pm;
     private String ontologyURI;
-    
+    private File ontologyFile;
+    private UserDao daoUser;
 	
 	public DataSetAnnotator(String ontologyURI){		
 		
 		manager = OWLManager.createOWLOntologyManager();
         factory = manager.getOWLDataFactory();     
         this.ontologyURI = ontologyURI;
+        daoUser = new UserDao();
         pm = new DefaultPrefixManager(null, null,
-                ontologyURI);
-               
+                ontologyURI);              
 	
-		File ontologyFile = new File("TwitterOntology.owl");
-		try {
-			ontology = manager.loadOntologyFromOntologyDocument(ontologyFile);
-		} catch (OWLOntologyCreationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ontologyFile = new File("TwitterOntology.owl");
+		
+		
 	}
 	
-	public void createData(List<UserAccount> users){
+	public void createData(){
 		
 		int i = 1;
-		for(UserAccount user: users){	
+		File file;
+		
+		List<UserAccount> followees = new ArrayList<UserAccount>();
+		
+				
+		for(UserAccount targetUser: daoUser.listUsers(true, true)){
 			
-			System.out.println(i++ + " - " + user.getScreenName());
+			try {
+				ontology = manager.loadOntologyFromOntologyDocument(ontologyFile);				
+			} catch (OWLOntologyCreationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
-			//Creating User
-			createUser(user);
+			//Setting followees targetUser flag to false because some target users can be as well followees
+			for(UserAccount followee: targetUser.getFollowees()){
+				followee.setIsTargetUser(false);
+				followees.add(followee);
+			}
 			
-			//Creating Tweets
-			createTweets(user.getTweets());
+			followees = targetUser.getFollowees();		
 			
-			if(user.isTargetUser()){
+			System.out.println(i++ + " - Target user: " + targetUser.getScreenName());	
+			//System.out.println(i++ + " - " + targetUser.getScreenName());			
+			createData(targetUser);
+			
+			for(UserAccount followee: followees){
 				
-				//Creating Retweets
-				createRetweets(user.getScreenName(), user.getRetweets());
-				
-				//Creating Replies
-				createReplies(user.getScreenName(), user.getReplies());
-				
-				//Creating Favorites
-				createFavorites(user.getScreenName(), user.getFavorites());
-				
-				//Creating Lists
-				createLists(user.getScreenName(), user.getLists());
-				
-				//Creating List members
-				createListMembers(user.getLists());
+				System.out.println(i++ + " - " + followee.getScreenName() + " - Target user: " + followee.isTargetUser());
+				createData(followee);
 			}			
 			
 			
+			file = new File("TwitterOntology-" + targetUser.getScreenName() + ".owl");
+	        try {
+				manager.saveOntology(ontology, IRI.create(file.toURI()));
+			} catch (OWLOntologyStorageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+	        manager.removeOntology(ontology);
+			
 		}
+	
+	}
+	
+	private void createData(UserAccount user){			
 		
-		File file = new File("TwitterOntology-Populated.owl");
-        try {
-			manager.saveOntology(ontology, IRI.create(file.toURI()));
-		} catch (OWLOntologyStorageException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
+		//Creating User
+		createUser(user);
+		
+		//Creating Tweets
+		createTweets(user.getTweets());
+		
+		if(user.isTargetUser()){
+			
+			//Creating Retweets
+			createRetweets(user.getScreenName(), user.getRetweets());
+			
+			//Creating Replies
+			createReplies(user.getScreenName(), user.getReplies());
+			
+			//Creating Favorites
+			createFavorites(user.getScreenName(), user.getFavorites());
+			
+			//Creating Lists
+			createLists(user.getScreenName(), user.getLists());
+			
+			//Creating List members
+			createListMembers(user.getLists());
+		}	
 	}
 	
 	public void createUser(UserAccount user){		

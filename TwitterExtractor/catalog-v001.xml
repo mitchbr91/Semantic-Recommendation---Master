@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
     <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="equalHashtagsRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="equalURLsRule.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="favoritesRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="hashtagContainedInTweetRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="hashtagSubstringListDescriptionRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="hashtagSubstringListNameRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="listContainsFolloweeOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="mentionsRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="repliesRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="retweetsRuleOntology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-norules.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-Populated.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1452350815290" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-Jukelmer.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-kamila__sg.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-marcelolinz.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-SimoneGhetti.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-Valsilva111.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1460483062709" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology.owl"/>
     </group>
 </catalog>

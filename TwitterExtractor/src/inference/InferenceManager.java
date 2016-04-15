@@ -27,7 +27,12 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
+import persistence.dao.hibernate.UserDao;
+import persistence.entities.hibernate.UserAccount;
+
+import com.clarkparsia.owlapi.explanation.BlackBoxExplanation;
 import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.util.SilentExplanationProgressMonitor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
@@ -41,10 +46,11 @@ public class InferenceManager {
 	private Map<String, Integer> rulesWeights;
 	private OWLOntology ontology;   
     private OWLOntologyManager manager;
-    private OWLDataFactory factory;
-    private PrefixManager pm;
+    private OWLDataFactory factory;   
 	private Map<String, List<TwitterAccount>> inferedFollowees;
-	
+	private PrefixManager pm;
+	private UserDao daoUser;
+		
 	public InferenceManager(){
 		
 		PelletOptions.USE_CONTINUOUS_RULES = true;
@@ -68,23 +74,14 @@ public class InferenceManager {
 	    reasonerFactory = PelletReasonerFactory.getInstance();
 	    renderer = new DLSyntaxObjectRenderer();
 	    inferedFollowees = new HashMap<String, List<TwitterAccount>>();
+	    daoUser = new UserDao();       
 	    
-	    File ontologyFile = new File("TwitterOntology-Populated.owl");
-		try {
-			ontology = manager.loadOntologyFromOntologyDocument(ontologyFile);				
-			System.out.println("Ontology: " + ontology);
-		} catch (OWLOntologyCreationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		pm = new DefaultPrefixManager(null, null,
-				ontology.getOntologyID().getOntologyIRI().get().toString()+"#");
-	        
-	    
+	    String ontologyIRI = "http://www.semanticweb.org/michel/ontologies/2014/6/TwitterOntology#";
+	    pm = new DefaultPrefixManager(null, null,
+	    		ontologyIRI); 
 	}
 	
-	public Map<String, List<TwitterAccount>> infer(List<String> targetUserSet){
+	public Map<String, List<TwitterAccount>> infer(){
 		
 		
 		OWLNamedIndividual targetUser;
@@ -96,70 +93,99 @@ public class InferenceManager {
 	    DefaultExplanationGenerator explanationGenerator;
 	    String inferedUserName;
         int inferedPoints;
-        TwitterAccount user = null;
-                
+        TwitterAccount user = null;       
+        List<String> targetUserSet = new ArrayList<String>();
         
-	    for(String rule: RulesManager.getRules().keySet()){
-	    	
-	    	SWRLRule swrlRule = RulesManager.getRules().get(rule);
-	    	
-	    	//Add rule to ontology
-	    	manager.applyChange(new AddAxiom(ontology, swrlRule));
-	    	
-	    	System.out.println("Rule: " + rule);
-	    	
-			reasoner = reasonerFactory.createNonBufferingReasoner(ontology);			
-			//reasoner = reasonerFactory.createReasoner(ontology, new SimpleConfiguration());        
-	        System.out.println("Reasoner: " + reasoner); 
-	        
-	        explanationGenerator = 
-	                new DefaultExplanationGenerator( 
-	                        manager, reasonerFactory, ontology, reasoner, new SilentExplanationProgressMonitor());
-	        
-	       
-	        
-	        int i = 1;
-	        for(String targetU: targetUserSet){
-	        	
-	        	System.out.println(i++ + " - " + targetU);
-	        
+        List<String> ontologies = new ArrayList<String>();
+        
+        //Get the name of all ontologies 
+        for(UserAccount u: daoUser.listUsers(true, false)){
+        	targetUserSet.add(u.getScreenName());
+        	ontologies.add("TwitterOntology-" + u.getScreenName() + ".owl");        	
+        }
+        
+        System.out.println("Ontologies size: " + ontologies.size());
+        
+        String targetU;
+        int inf = 0;
+        for(String ontologyName: ontologies){
+        	
+        	File ontologyFile = new File(ontologyName);
+     		
+        	try {
+     			ontology = manager.loadOntologyFromOntologyDocument(ontologyFile);				
+     			System.out.println("Ontology: " + ontologyName);
+     		} catch (OWLOntologyCreationException e) {
+     			// TODO Auto-generated catch block
+     			e.printStackTrace();
+     		}
+        	
+        	System.out.println("Ontology IRI: " + ontology.getOntologyID().getOntologyIRI());
+        	
+        	for(String rule: RulesManager.getRules().keySet()){
+    	    	
+        		
+    	    	SWRLRule swrlRule = RulesManager.getRules().get(rule);    	    
+    	    	
+    	    	//Add rule to ontology
+    	    	manager.applyChange(new AddAxiom(ontology, swrlRule));
+    	    	
+    	    	System.out.println("Rule: " + rule);
+    	    	
+    			reasoner = reasonerFactory.createNonBufferingReasoner(ontology);			
+    			//reasoner = reasonerFactory.createReasoner(ontology, new SimpleConfiguration());        
+    	        System.out.println("Reasoner: " + reasoner); 
+    	        
+    	        explanationGenerator = 
+    	                new DefaultExplanationGenerator( 
+    	                        manager, reasonerFactory, ontology, reasoner, new SilentExplanationProgressMonitor());
+    	        
+    	       
+    	        int i = 0;
+    	        targetU = ontologyName.replace("TwitterOntology-", "").replace(".owl", "");
+    	        
+    	        System.out.println(i++ + " - " + targetU);
+    	        
 	        	targetUser = factory.getOWLNamedIndividual(":"+targetU, pm);
 	        	inferedProperty = factory.getOWLObjectProperty(":"+rule, pm);
 	        	
 	        		
-              	 twitterAccountList = new ArrayList<TwitterAccount>();
-	        	 for (OWLNamedIndividual inferedUser : reasoner.getObjectPropertyValues(targetUser, inferedProperty).getFlattened()) { 
-	        	         	        		
-	        		 inferedUserName = renderer.render(inferedUser); 
-	        		 user = new TwitterAccount(inferedUserName);		        		 
+              	twitterAccountList = new ArrayList<TwitterAccount>();
+	        	for (OWLNamedIndividual inferedUser : reasoner.getObjectPropertyValues(targetUser, inferedProperty).getFlattened()) { 
+	        	    	        		
+	        		inferedUserName = renderer.render(inferedUser); 
+	        		user = new TwitterAccount(inferedUserName);		        		 
 	        		 	        		
-//	        		 axiomToExplain = factory.getOWLObjectPropertyAssertionAxiom(inferedProperty, targetUser, inferedUser); 
-//	        		 explanation = explanationGenerator.getExplanations(axiomToExplain);
+	        		axiomToExplain = factory.getOWLObjectPropertyAssertionAxiom(inferedProperty, targetUser, inferedUser); 
+	        		//explanation = explanationGenerator.getExplanations(axiomToExplain);
 	        		 
-	        		 ruleWeight = rulesWeights.get(rule);
-	        		 inferedPoints = 1/*ruleWeight*explanation.size()*/;
-	        		 user.setInferedPoints(inferedPoints);
+	        		ruleWeight = rulesWeights.get(rule);
+	        		inferedPoints = 1/*ruleWeight*explanation.size()*/;
+//	        		inf += ruleWeight*explanation.size();	        				
+	        		user.setInferedPoints(inferedPoints);
+	        		
+	        		inf++;
 	        			 
-	        		 twitterAccountList.add(user);        
-	        		 System.out.println("Some inference: " + inferedUserName);
-	             }
+	        		twitterAccountList.add(user);        
+	        		System.out.println("Some inference: " + inferedUserName);
+	            }
 	        	 
-	        	 if(!inferedFollowees.containsKey(targetU))	        	
-	        		 inferedFollowees.put(targetU, twitterAccountList);
-	        	 else{
+	        	if(!inferedFollowees.containsKey(targetU))	        	
+	        		inferedFollowees.put(targetU, twitterAccountList);
+	        	else{
 	        		 
-	        		 List<TwitterAccount> normalizedTwitterList = new ArrayList<TwitterAccount>();
-	        		 for(TwitterAccount ta: twitterAccountList){
-	        			 if(inferedFollowees.get(targetU).contains(ta)){
+	        		List<TwitterAccount> normalizedTwitterList = new ArrayList<TwitterAccount>();
+	        		for(TwitterAccount ta: twitterAccountList){
+	        			if(inferedFollowees.get(targetU).contains(ta)){
 	        				 
-	        				 for(TwitterAccount account: inferedFollowees.get(targetU)){
-	        					 if(account.getName().equals(ta.getName())){
-	        						 ta.setInferedPoints(account.getInferedPoints());
-	        						 normalizedTwitterList.add(ta);	        						 
-	        						 break;
-	        					 }	        					 
+	        				for(TwitterAccount account: inferedFollowees.get(targetU)){
+	        					if(account.getName().equals(ta.getName())){
+	        						ta.setInferedPoints(account.getInferedPoints());
+	        						normalizedTwitterList.add(ta);	        						 
+	        						break;
+	        					}	        					 
 	        					 
-	        				 }
+	        				}
 	        			 }else{
 	        				 normalizedTwitterList.add(ta);      				 
 	        			 }
@@ -174,16 +200,62 @@ public class InferenceManager {
 	        		 inferedFollowees.put(targetU, normalizedTwitterList);
 	        		 
 	        	 }
-	        }
-	        
-	        //Remove rule
-	        manager.removeAxiom(ontology, swrlRule);	       
-	        reasoner.dispose();	        
-	        System.out.println("Rule removed!");
-	    }
-       
+    	        
+    	        //Remove rule
+    	        manager.removeAxiom(ontology, swrlRule);	       
+    	        reasoner.dispose();	        
+    	        System.out.println("Rule removed!");
+    	    }
+        	
+        	manager.removeOntology(ontology);
+        	
+        	
+        }
+        
+        System.out.println("Total inferido: " + inf);
         return inferedFollowees;
 
+	}
+	
+	public Map<String, List<TwitterAccount>> extractUsersWithNoInteractions(Map<String, List<TwitterAccount>> inferedUsers){
+		
+		List<TwitterAccount> inferedSet;
+		List<UserAccount> followees;
+		boolean found = false;
+		int i = 0;
+		
+		List<TwitterAccount> users;
+//	
+//		for(String key: inferedUsers.keySet()){
+//			
+//			inferedSet = inferedUsers.get(key);
+//			
+//			daoUser.getUser(userID, initialize)
+//		}
+//		
+//		for(UserAccount user: daoUser.listUsers(true, false)){
+//			
+//			inferedSet = inferedUsers.get(user.getScreenName());			
+//			followees = user.getFollowees();
+//			
+//			users = new ArrayList<TwitterAccount>();
+//			for(UserAccount followee: followees){
+//				while(i < inferedSet.size() && !found){
+//					if(followee.getScreenName().equalsIgnoreCase(inferedSet.get(i).getName())){
+//						found = true;
+//					}
+//					
+//					i++;
+//				}
+//				
+//				if(found)
+//					users.add(e)
+//					
+//			}
+//		}
+		
+		return null;
+		
 	}
 
 	

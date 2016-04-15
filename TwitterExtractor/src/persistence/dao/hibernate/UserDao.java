@@ -117,7 +117,15 @@ public class UserDao{
 		        		 Hibernate.initialize(tweet.getHashtags());
 		        		 Hibernate.initialize(tweet.getURLs());
 		        		 Hibernate.initialize(tweet.getMentions());
-		        	 }		        	 
+		        	 }
+		        	 
+		        	 Hibernate.initialize(followee.getRetweets());
+		        	 
+		        	 for(Tweet retweet: followee.getRetweets()){
+		        		 Hibernate.initialize(retweet.getHashtags());
+		        		 Hibernate.initialize(retweet.getURLs());
+		        		 Hibernate.initialize(retweet.getMentions());
+		        	 }
 		        	 
 		         } 
 	         }	         

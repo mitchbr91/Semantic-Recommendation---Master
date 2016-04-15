@@ -289,6 +289,10 @@ public class UserAccount{
 	public boolean isTargetUser() {
 		return targetUser;
 	}
+	
+	public void setIsTargetUser(boolean targetUser){
+		this.targetUser = targetUser;
+	}
 
 	public List<UserAccount> getFollowees() {
 		return followees;
