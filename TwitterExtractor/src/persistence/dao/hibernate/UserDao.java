@@ -60,6 +60,36 @@ public class UserDao{
 		 
 	 }
 	 
+	 public UserAccount getUserByScreenname(String screenname, boolean initialize){
+		 
+		 SessionFactory sf = HibernateUtil.getSessionFactory();
+		 Session session = sf.openSession();       
+		 Transaction tx = null;
+		
+		
+		 String sql = "from tb_user WHERE screen_name = " + screenname;
+		 
+		 UserAccount user = null;
+		 try{
+	         tx = session.beginTransaction();
+	         List<UserAccount> usersRetrieved = session.createQuery(sql).list();
+	         
+	         if(usersRetrieved.size() == 1)
+	        	 user = getUser(usersRetrieved.get(0).getIDUser(), initialize);
+			 	         
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close();
+	        
+	      }
+		 
+		 return user;
+		 
+	 }
+	 
 	 public UserAccount getUser(long userID, boolean initialize){
 		 
 		 sf = HibernateUtil.getSessionFactory();

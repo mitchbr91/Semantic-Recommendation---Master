@@ -1,11 +1,14 @@
 package twitter.tracker.hibernate;
 
+import persistence.entities.hibernate.UserAccount;
 
 public class TwitterAccount {
 	
 	private String name;
 	private int inferedPoints;
 	private double cosineSimilarity;
+	private double pearsonsCorrelation;
+	private double euclideanDistance;
 	
 	public TwitterAccount(String name){
 		this.setName(name);
@@ -35,6 +38,22 @@ public class TwitterAccount {
 		this.cosineSimilarity = cosineSimilarity;
 	}
 
+	public double getPearsonsCorrelation() {
+		return pearsonsCorrelation;
+	}
+
+	public void setPearsonsCorrelation(double pearsonsCorrelation) {
+		this.pearsonsCorrelation = pearsonsCorrelation;
+	}
+
+	public double getEuclideanDistance() {
+		return euclideanDistance;
+	}
+
+	public void setEuclideanDistance(double euclideanDistance) {
+		this.euclideanDistance = euclideanDistance;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -45,10 +64,12 @@ public class TwitterAccount {
 
 	@Override
 	public boolean equals(Object obj) {
+
 		if (this == obj)
 			return true;
 		if (obj == null)
-			return false;
+			return false;		
+				
 		if (getClass() != obj.getClass())
 			return false;
 		TwitterAccount other = (TwitterAccount) obj;
@@ -59,7 +80,6 @@ public class TwitterAccount {
 			return false;
 		return true;
 	}
-	
 	
 
 }

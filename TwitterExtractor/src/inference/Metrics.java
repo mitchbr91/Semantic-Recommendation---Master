@@ -23,11 +23,10 @@ public class Metrics {
 	public Metrics(){
 		daoUser = new UserDao();
 	}
-	
-	@SuppressWarnings("unchecked")
+		
 	public void calculateMetrics(int metricRate, Map<String, List<TwitterAccount>> inferedFollowees){
 		
-		FileInputStream fileStream;
+		
 		Map<String, List<String>> usersFolloweeNetwork = new HashMap<String, List<String>>(); 
 		
 		List<UserAccount> targetUsers = daoUser.listUsers(true, false);

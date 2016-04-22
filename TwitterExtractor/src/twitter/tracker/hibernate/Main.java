@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 
 import persistence.entities.hibernate.HibernateUtil;
+import persistence.entities.hibernate.UserAccount;
 
 public class Main {
 
@@ -62,8 +63,33 @@ public class Main {
 		
 		InferenceManager inference = new InferenceManager();
 		
-		inference.infer();				
-			
+		//inference.infer();
+		
+		List<TwitterAccount> list = new ArrayList<TwitterAccount>();
+		
+		TwitterAccount t = new TwitterAccount("lol");	
+		t.setInferedPoints(52);
+		list.add(t);
+		t = new TwitterAccount("lol2");
+		t.setInferedPoints(1);
+		list.add(t);
+		t = new TwitterAccount("lol3");
+		t.setInferedPoints(6);
+		list.add(t);
+		
+		list.sort(new MyComparator());
+
+		
+		for(TwitterAccount l: list){
+			System.out.println("TA: " + l.getName() + " - P: " + l.getInferedPoints());
+		}
+		
+		Object obj = new Object();
+		System.out.println("Contains: " + list.size());
+		list.remove(t);
+		System.out.println("Contains: " + list.size());
+		System.out.println("Teste: " + !t.getClass().getName().equals("persistence.entities.hibernate.UserAccount"));
+	
 		HibernateUtil.closeSessionFactory();
 		
 //		SWRLVariable u1 =  factory.getSWRLVariable(IRI.create(ontologyIRI + "#?u1"));

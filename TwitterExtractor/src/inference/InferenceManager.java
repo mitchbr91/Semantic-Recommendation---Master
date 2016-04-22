@@ -36,6 +36,7 @@ import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.util.SilentExplanationProgressMonitor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
+import twitter.tracker.hibernate.MyComparator;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class InferenceManager {
@@ -222,39 +223,58 @@ public class InferenceManager {
 		List<TwitterAccount> inferedSet;
 		List<UserAccount> followees;
 		boolean found = false;
-		int i = 0;
-		
+		Map<String, List<TwitterAccount>> usersWithNoInteractions = new HashMap<String, List<TwitterAccount>>();
+		int i = 0;		
 		List<TwitterAccount> users;
-//	
-//		for(String key: inferedUsers.keySet()){
-//			
-//			inferedSet = inferedUsers.get(key);
-//			
-//			daoUser.getUser(userID, initialize)
-//		}
-//		
-//		for(UserAccount user: daoUser.listUsers(true, false)){
-//			
-//			inferedSet = inferedUsers.get(user.getScreenName());			
-//			followees = user.getFollowees();
-//			
-//			users = new ArrayList<TwitterAccount>();
-//			for(UserAccount followee: followees){
-//				while(i < inferedSet.size() && !found){
-//					if(followee.getScreenName().equalsIgnoreCase(inferedSet.get(i).getName())){
-//						found = true;
-//					}
-//					
-//					i++;
-//				}
-//				
-//				if(found)
-//					users.add(e)
-//					
-//			}
-//		}
+	
+		for(UserAccount user: daoUser.listUsers(true, false)){
+			
+			inferedSet = inferedUsers.get(user.getScreenName());			
+			followees = user.getFollowees();
+			
+			users = new ArrayList<TwitterAccount>();
+			for(UserAccount followee: followees){
+				while(i < inferedSet.size() && !found){
+					if(followee.getScreenName().equalsIgnoreCase(inferedSet.get(i).getName())){
+						found = true;						
+					}
+					
+					i++;
+				}
+				
+				if(!found)
+					users.add(new TwitterAccount(followee.getScreenName()));	
+				
+				
+				found = false;
+				i = 0;
+					
+			}
+			
+			/*
+			 * The threshold is half of followees size. If the users with no is equal or greater than the 
+			 * half of the followees size is ok. Otherwise we need to complete this threshold with users
+			 * with low interaction punctuation. The threshold can the changed, when it's desired. 
+			 */
+			
+			
+			if(users.size() >= followees.size()/2)			
+				usersWithNoInteractions.put(user.getScreenName(), users);
+			else{
+				
+				int usersWithLowInteractionSize = followees.size()/2 - users.size();
+				
+				//Ordering
+				inferedSet.sort(new MyComparator());
+				for(int j = 0; j < usersWithLowInteractionSize; j++){
+					users.add(inferedSet.get(j));
+				}			
+				
+				usersWithNoInteractions.put(user.getScreenName(), users);
+			}
+		}
 		
-		return null;
+		return usersWithNoInteractions;
 		
 	}
 

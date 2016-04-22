@@ -135,6 +135,11 @@ public class UserAccount{
 		replies = new ArrayList<Tweet>();   
 		
 	}
+	
+	public UserAccount(String screenNanme){
+		this.screenName = screenNanme;
+	}
+	
 	public UserAccount(long idUser) {
 		this.idUser = idUser;
 	}

@@ -145,7 +145,7 @@ public class Main {
         
         SimilarityManager simManager = new SimilarityManager();
         //simManager.calculateSimilarity();
-        metrics.calculateMetrics(7, simManager.calculateSimilarity());
+        //metrics.calculateMetrics(7, simManager.calculateSimilarity());
         
       
         File ontologyFile = new File("TwitterOntology-Populated.owl");
