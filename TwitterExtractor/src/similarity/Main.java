@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 import ptstemmer.Stemmer;
 import ptstemmer.exceptions.PTStemmerException;
 import ptstemmer.implementations.OrengoStemmer;
+import twitter.tracker.hibernate.MyComparatorCosineSimilarity;
+import twitter.tracker.hibernate.TwitterAccount;
 
 public class Main {
 	
@@ -33,12 +37,7 @@ public class Main {
 //         
 //         System.out.println("Before: " + s);
 //         System.out.println("After: " + s.replaceAll("!", ""));
-         
-         List<List<String>> users = new ArrayList<List<String>>();
-         List<String> u = new ArrayList<String>();
-         //u.add(profile);
-         
-         users.add(u);
+
          
          //users = treater.eliminateStopWords(users);
          
@@ -46,17 +45,7 @@ public class Main {
 //     			.replaceAll("\\?", "").replaceAll("!", "")
 //     			.replaceAll(",", "").replaceAll(":", "")
 //     			.replaceAll(";", "").replace("\\.", "");	
-         
-         String pro = "";
-         i = 1;
-         for(String p: users.get(0)){
-        	 
-        	 if(i % 10 == 0){
-        		 pro += "\n";
-        	 }else{
-        		 pro += p + " ";
-        	 }
-         }
+    
          
          //System.out.println(pro);
          
@@ -66,17 +55,43 @@ public class Main {
 //        	 System.out.println("Token: " + s);
 //         }
          
-         Stemmer stemmer;
-         try {
-				stemmer = new OrengoStemmer();			
-				stemmer.enableCaching(1000);   //Optional		
-				
-				System.out.println("Stemm: " + stemmer.getWordStem("drogaria"));
-									
-			} catch (PTStemmerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
+//         Stemmer stemmer;
+//         try {
+//				stemmer = new OrengoStemmer();			
+//				stemmer.enableCaching(1000);   //Optional		
+//				
+//				System.out.println("Stemm: " + stemmer.getWordStem("love"));
+//									
+//			} catch (PTStemmerException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}	
+         
+         String s = "you're love is a lovelove";         
+         //System.out.println(s.split(" ").length);
+         
+         List<TwitterAccount> l = new ArrayList<TwitterAccount>();
+         
+         TwitterAccount t = new TwitterAccount("a");
+         t.setCosineSimilarity(0.4578781545);
+         
+         l.add(t);
+         
+         t = new TwitterAccount("b");
+         t.setCosineSimilarity(0.8751548548545);
+         
+         l.add(t);
+         
+         t = new TwitterAccount("c");
+         t.setCosineSimilarity(0.1487856568);
+         
+         l.add(t);
+         
+         l.sort(new MyComparatorCosineSimilarity());
+                 
+         for(TwitterAccount n:l){
+        	 System.out.println(n.getCosineSimilarity());
+         }
          
 	}
 

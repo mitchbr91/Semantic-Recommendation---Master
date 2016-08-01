@@ -433,6 +433,9 @@ public class DataSetAnnotator {
 			list = factory.getOWLNamedIndividual(":" + id, pm);
 			for(UserAccount member: l.getListMembers()){
 				
+				if(!ontology.containsIndividualInSignature(IRI.create(ontologyURI + member.getScreenName())))
+					createUser(member);
+				
 	            twitterAccount = factory.getOWLNamedIndividual(":" + member.getScreenName(), pm);
 	            hasMemberAssertion = factory.getOWLObjectPropertyAssertionAxiom(hasMember, list,
 	                    twitterAccount);

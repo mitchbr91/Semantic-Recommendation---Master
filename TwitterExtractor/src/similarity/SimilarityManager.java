@@ -13,6 +13,7 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.Tweet;
 import persistence.entities.hibernate.UserAccount;
+import twitter.tracker.hibernate.MyComparatorCosineSimilarity;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class SimilarityManager {
@@ -26,7 +27,7 @@ public class SimilarityManager {
 		daoUser = new UserDao();
 	}
 	
-	public Map<String, java.util.List<TwitterAccount>> calculateSimilarity(Map<String, List<TwitterAccount>> usersNetwork){
+	public Map<String, java.util.List<TwitterAccount>> calculateSimilarity(Map<String, List<TwitterAccount>> usersNetwork, int size){
 		
 		Map<String, String> normalizedTweets;
 		Map<String, java.util.List<Double>> tf_idfs;
@@ -40,14 +41,16 @@ public class SimilarityManager {
 			
 			normalizedTweets = normalizeTweets(targetUserScreenname, usersWithLowInteraction);
 			System.out.println("Normalized");
-			tf_idfs = calculateTF_IDF(normalizedTweets);
+			tf_idfs = calculateTF_IDF(targetUserScreenname, normalizedTweets);
 			System.out.println("TF-IDF Calculated");
-			unsimilarUsers = calculateCosineSimilarity(targetUserScreenname, tf_idfs);
+			unsimilarUsers = calculateCosineSimilarity(targetUserScreenname, tf_idfs, size);
 			System.out.println("Cosine similarity calculated");
 			
 			usersToBeUnfollowed.put(targetUserScreenname, unsimilarUsers);
 			
 		}
+		
+		System.out.println("calculateSimilarity - Method");
 	
 		return usersToBeUnfollowed;
 	}
@@ -133,19 +136,23 @@ public class SimilarityManager {
 		return tweets;
 	}
 		
-	private Map<String, java.util.List<Double>> calculateTF_IDF(Map<String, String> tweets){
+	private Map<String, java.util.List<Double>> calculateTF_IDF(String targetUserScreenname, Map<String, String> tweets){
 		
 		//-------------------- Calculate TF-IDF for each tweet
-		
+		Map<String, java.util.List<Double>> tdf_idfUsersMap = new HashMap<String, java.util.List<Double>>();
+		java.util.List<Double> tf_idfs = null;		
 		String tweet = "";
-		List<String> distinctTerms = distinctTermsGenerator(tweets);
+		String targetUserTweets = tweets.get(targetUserScreenname);
+		List<String> distinctTerms = distinctTermsGenerator(targetUserTweets);
+		//Remove target user entry
+		tweets.remove(targetUserScreenname);
+		
 		System.out.println("DistinctTerms: " + distinctTerms.size());
 		System.out.println("Tweets: " + tweets.size());
 		List<String> tweetSet = new ArrayList<String>();
+		Map<String, Double> idfsTargetUser = new HashMap<String, Double>();
 		
-		Map<String, java.util.List<Double>> tdf_idfUsersMap = new HashMap<String, java.util.List<Double>>();
 		double tdf_idf;
-		java.util.List<Double> tdf_idfs;
 		
 		System.out.println("INSIDE");
 		//Get the tweets from all users. Each set of tweets from an specific user represents its profile.
@@ -158,44 +165,55 @@ public class SimilarityManager {
 		
 		System.out.println("OUTSIDE");
 		
-		int k;
-		//-------------------- Calculating TF_IDF
+		//--------------------- Calculate TF-IDF for target user
+		
+		double tf = 0, idf = 0;
+		tf_idfs = new ArrayList<Double>();
+		for(String termToCheck: distinctTerms){
+
+			tf = tdf_idfCalculator.tfCalculator(targetUserTweets, termToCheck);
+			idf = tdf_idfCalculator.idfCalculator(tweetSet, termToCheck);
+					
+			idfsTargetUser.put(termToCheck, idf);
+			tf_idfs.add(tf*idf);
+							
+		}
+				
+		tdf_idfUsersMap.put(targetUserScreenname, tf_idfs);
+	
+		
+		//-------------------- Calculating TF_IDF for followees
 		for(String key: tweets.keySet()){
 			
-			tweet = tweets.get(key);
-	
-			tdf_idfs = new ArrayList<Double>();
+			tweet = tweets.get(key);	
+			tf_idfs = new ArrayList<Double>();
 			
-			k = 1;
 			for(String termToCheck: distinctTerms){
 
-				tdf_idf = tdf_idfCalculator.TF_IDFCalculator(tweet, tweetSet, termToCheck);						
-				tdf_idfs.add(tdf_idf);	
-				System.out.println(k++ + " - " + termToCheck);
-								
+				tf = tdf_idfCalculator.tfCalculator(tweet, termToCheck);
+				tf_idfs.add(tf*idfsTargetUser.get(termToCheck));	
+												
 			}
 			
 			System.out.println("Before: " + key);
-			tdf_idfUsersMap.put(key, tdf_idfs);	
+			tdf_idfUsersMap.put(key, tf_idfs);	
 			System.out.println("After: " + key);
 		}
 		
+		System.out.println("Distinct terms size: " + distinctTerms.size());
+		System.out.println("Users size: " + tweets.keySet().size());
 		System.out.println("WOW");
 		
 		return tdf_idfUsersMap;
 	}
 	
-	private List<String> distinctTermsGenerator(Map<String, String> tweets){
-		
-		String tweet; 
+	private List<String> distinctTermsGenerator(String tweet){
+				
 		List<String> distinctTerms = new ArrayList<String>();
 		StringTokenizer st;
 		String termToCheck;
-		
-		for(String key: tweets.keySet()){
-			tweet = tweets.get(key);
-			
-			st = new StringTokenizer(tweet);
+	
+		st = new StringTokenizer(tweet);
 				
 			while(st.hasMoreElements()){
 					
@@ -206,17 +224,17 @@ public class SimilarityManager {
 				}
 			}
 			
-		}
+		
 		
 		return distinctTerms;
 	}
 	
-	private java.util.List<TwitterAccount> calculateCosineSimilarity(String targetUserScreenname, Map<String, java.util.List<Double>> tf_idfUsersMap){
+	private java.util.List<TwitterAccount> calculateCosineSimilarity(String targetUserScreenname, Map<String, java.util.List<Double>> tf_idfUsersMap, int size){
 	
 		//----------------------- Apply cosine similitary function
 		
 		java.util.List<Double> tf_idf2 = new ArrayList<Double>();	
-		java.util.List<TwitterAccount> unsimilarUsers = null;
+		java.util.List<TwitterAccount> similarity = null;
 		
 		java.util.List<Double> tf_idfTargetUser;
 		
@@ -227,7 +245,7 @@ public class SimilarityManager {
 		tf_idfUsersMap.remove(targetUserScreenname);
 	
 		TwitterAccount twitterAccount;
-		unsimilarUsers = new ArrayList<TwitterAccount>();
+		similarity = new ArrayList<TwitterAccount>();
 		for(String user: tf_idfUsersMap.keySet()){
 			
 			
@@ -239,11 +257,18 @@ public class SimilarityManager {
 			twitterAccount = new TwitterAccount(user);
 			twitterAccount.setCosineSimilarity(cosine.cosineSimilarity(vet1,vet2));
 			
-			unsimilarUsers.add(twitterAccount);
+			similarity.add(twitterAccount);
 
 			
 		}
 	
+		// I need to take the n followees with lowest value of cosine similarity
+		List<TwitterAccount> unsimilarUsers = new ArrayList<TwitterAccount>();
+		similarity.sort(new MyComparatorCosineSimilarity());
+		for (int i = 0; i < size; i++){
+			unsimilarUsers.add(similarity.get(i));
+		}
+		
 		return unsimilarUsers;
 	}
 	

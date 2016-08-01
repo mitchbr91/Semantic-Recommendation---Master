@@ -13,7 +13,7 @@ import java.util.Random;
 
 import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.UserAccount;
-import twitter.tracker.hibernate.MyComparator;
+import twitter.tracker.hibernate.MyComparatorInferedPoints;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class Metrics {
@@ -62,7 +62,7 @@ public class Metrics {
 				
 	    	inferedUsers = inferedFollowees.get(user);
 						
-			inferedUsers.sort(new MyComparator());
+			inferedUsers.sort(new MyComparatorInferedPoints());
 			Collections.reverse(inferedUsers);
 				
 			followedUsers = usersFolloweeNetwork.get(user);
@@ -124,7 +124,7 @@ public class Metrics {
 	    	inferedUsers = inferedFollowees.get(user);
 				
 			//Ordering the List
-			inferedUsers.sort(new MyComparator());
+			inferedUsers.sort(new MyComparatorInferedPoints());
 			Collections.reverse(inferedUsers);
 				
 			followedUsers = usersFolloweeNetwork.get(user);
@@ -208,7 +208,7 @@ public class Metrics {
 		List<TwitterAccount> list;
 		for(String key: map.keySet()){
 			list = map.get(key);
-			list.sort(new MyComparator());
+			list.sort(new MyComparatorInferedPoints());
 			Collections.reverse(list);
 			
 			System.out.println(key);

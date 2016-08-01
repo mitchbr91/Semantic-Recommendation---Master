@@ -100,9 +100,8 @@ public class DataSetExtractor {
 		   		do{
 		   			
 		   			rateStatus = twitter.getRateLimitStatus().get("/friends/list");
-		   			remainingRateLimit = rateStatus.getRemaining(); 
-		   			   				
-		   			 	
+		   			remainingRateLimit = rateStatus.getRemaining(); 		   			   	
+		   			
 			        users = twitter.getFriendsList(page.getScreenName(), cursor, 200); 
 			        
 			        total += users.size();

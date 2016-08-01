@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.mindswap.pellet.PelletOptions;
+import org.semanticweb.owl.explanation.api.Explanation;
+import org.semanticweb.owl.explanation.api.ExplanationGenerator;
+import org.semanticweb.owl.explanation.api.ExplanationGeneratorFactory;
+import org.semanticweb.owl.explanation.api.ExplanationManager;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.dlsyntax.renderer.DLSyntaxObjectRenderer;
 import org.semanticweb.owlapi.io.OWLObjectRenderer;
@@ -36,7 +40,7 @@ import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.util.SilentExplanationProgressMonitor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
-import twitter.tracker.hibernate.MyComparator;
+import twitter.tracker.hibernate.MyComparatorInferedPoints;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class InferenceManager {
@@ -87,8 +91,8 @@ public class InferenceManager {
 		
 		OWLNamedIndividual targetUser;
 	    OWLObjectProperty inferedProperty;
-	    OWLObjectPropertyAssertionAxiom axiomToExplain;
-	    Set<Set<OWLAxiom>> explanation;
+	    OWLAxiom axiomToExplain;
+	    Set<Explanation<OWLAxiom>> explanation = null;
 	    List<TwitterAccount> twitterAccountList = null;
 	    int ruleWeight;	    
 	    DefaultExplanationGenerator explanationGenerator;
@@ -102,10 +106,14 @@ public class InferenceManager {
         //Get the name of all ontologies 
         for(UserAccount u: daoUser.listUsers(true, false)){
         	targetUserSet.add(u.getScreenName());
-        	ontologies.add("TwitterOntology-" + u.getScreenName() + ".owl");        	
+        	ontologies.add("TwitterOntology-" + u.getScreenName() + ".owl");        
         }
         
         System.out.println("Ontologies size: " + ontologies.size());
+        ExplanationGeneratorFactory<OWLAxiom> genFac =
+    			ExplanationManager.createExplanationGeneratorFactory(reasonerFactory);
+        
+      
         
         String targetU;
         int inf = 0;
@@ -121,7 +129,9 @@ public class InferenceManager {
      			e.printStackTrace();
      		}
         	
+        	
         	System.out.println("Ontology IRI: " + ontology.getOntologyID().getOntologyIRI());
+        	
         	
         	for(String rule: RulesManager.getRules().keySet()){
     	    	
@@ -150,25 +160,40 @@ public class InferenceManager {
 	        	targetUser = factory.getOWLNamedIndividual(":"+targetU, pm);
 	        	inferedProperty = factory.getOWLObjectProperty(":"+rule, pm);
 	        	
-	        		
+	        	ExplanationGenerator<OWLAxiom> gen = genFac.createExplanationGenerator(ontology);	
               	twitterAccountList = new ArrayList<TwitterAccount>();
 	        	for (OWLNamedIndividual inferedUser : reasoner.getObjectPropertyValues(targetUser, inferedProperty).getFlattened()) { 
 	        	    	        		
 	        		inferedUserName = renderer.render(inferedUser); 
 	        		user = new TwitterAccount(inferedUserName);		        		 
-	        		 	        		
-	        		axiomToExplain = factory.getOWLObjectPropertyAssertionAxiom(inferedProperty, targetUser, inferedUser); 
-	        		//explanation = explanationGenerator.getExplanations(axiomToExplain);
-	        		 
-	        		ruleWeight = rulesWeights.get(rule);
-	        		inferedPoints = 1/*ruleWeight*explanation.size()*/;
-//	        		inf += ruleWeight*explanation.size();	        				
+	        		
+	        		
+	        		axiomToExplain = factory.getOWLObjectPropertyAssertionAxiom(inferedProperty, targetUser, inferedUser);	        	
+	        		
+	        		if (rule.equalsIgnoreCase("listContainsFollowee") 
+	        				|| rule.equalsIgnoreCase("hashtagSubstringListNameRule")
+	        				|| rule.equalsIgnoreCase("hashtagSubstringListDescriptionRule")
+	        						){
+	        			
+	        			inferedPoints = 1;
+		        		System.out.println("Ich bin hier - IF");
+	        		}else{	        				        		
+		        				        		
+		        		System.out.println("Na und - ELSE");
+	        			ruleWeight = rulesWeights.get(rule);
+	        			explanation = gen.getExplanations(axiomToExplain, 10);	        		
+		        		inferedPoints = ruleWeight*explanation.size();
+	        		}
+	        		
+	        		//inferedPoints = 1;
+	        		
+	        		//inf += ruleWeight*explanation.size();	        				
 	        		user.setInferedPoints(inferedPoints);
 	        		
-	        		inf++;
+	        		//inf++;
 	        			 
 	        		twitterAccountList.add(user);        
-	        		System.out.println("Some inference: " + inferedUserName);
+	        		System.out.println("Some inference: " + inferedUserName + " - Points: " + inferedPoints);
 	            }
 	        	 
 	        	if(!inferedFollowees.containsKey(targetU))	        	
@@ -213,7 +238,7 @@ public class InferenceManager {
         	
         }
         
-        System.out.println("Total inferido: " + inf);
+        //System.out.println("Total inferido: " + inf);
         return inferedFollowees;
 
 	}
@@ -232,50 +257,79 @@ public class InferenceManager {
 			inferedSet = inferedUsers.get(user.getScreenName());			
 			followees = user.getFollowees();
 			
-			users = new ArrayList<TwitterAccount>();
-			for(UserAccount followee: followees){
-				while(i < inferedSet.size() && !found){
-					if(followee.getScreenName().equalsIgnoreCase(inferedSet.get(i).getName())){
-						found = true;						
+			if (inferedSet != null){
+				users = new ArrayList<TwitterAccount>();
+				for(UserAccount followee: followees){
+					while(i < inferedSet.size() && !found){
+						if(followee.getScreenName().equals(inferedSet.get(i).getName())){
+							found = true;						
+						}
+						
+						i++;
 					}
 					
-					i++;
+					if(!found)
+						users.add(new TwitterAccount(followee.getScreenName()));	
+					
+					
+					found = false;
+					i = 0;
+						
 				}
 				
-				if(!found)
-					users.add(new TwitterAccount(followee.getScreenName()));	
+				/*
+				 * The threshold is half of followees size. If the users with no is equal or greater than the 
+				 * half of the followees size is ok. Otherwise we need to complete this threshold with users
+				 * with low interaction punctuation. The threshold can the changed, when it's desired. 
+				 */
 				
 				
-				found = false;
-				i = 0;
+				if(users.size() >= followees.size()/2)			
+					usersWithNoInteractions.put(user.getScreenName(), users);
+				else{
 					
+					int usersWithLowInteractionSize = followees.size()/2 - users.size();
+					
+					//Ordering
+					inferedSet.sort(new MyComparatorInferedPoints());
+					for(int j = 0; j < usersWithLowInteractionSize; j++){
+						users.add(inferedSet.get(j));
+					}			
+					
+					usersWithNoInteractions.put(user.getScreenName(), users);
+				}
 			}
 			
-			/*
-			 * The threshold is half of followees size. If the users with no is equal or greater than the 
-			 * half of the followees size is ok. Otherwise we need to complete this threshold with users
-			 * with low interaction punctuation. The threshold can the changed, when it's desired. 
-			 */
-			
-			
-			if(users.size() >= followees.size()/2)			
-				usersWithNoInteractions.put(user.getScreenName(), users);
-			else{
-				
-				int usersWithLowInteractionSize = followees.size()/2 - users.size();
-				
-				//Ordering
-				inferedSet.sort(new MyComparator());
-				for(int j = 0; j < usersWithLowInteractionSize; j++){
-					users.add(inferedSet.get(j));
-				}			
-				
-				usersWithNoInteractions.put(user.getScreenName(), users);
-			}
 		}
+		
+		System.out.println("extractUsersWithNoInteractions - Method");
 		
 		return usersWithNoInteractions;
 		
+	}
+	
+	/**
+	 * Return for each target user the list of his/her followees. This set will be used to calculate similarity between a user 
+	 * and his followees without analyse semantic interaction between users.
+	 * @return
+	 */
+	public Map<String, List<TwitterAccount>> getUsersNetwork(){
+		
+		Map<String, List<TwitterAccount>> usersNetwork = new HashMap<String, List<TwitterAccount>>();
+		
+		List<TwitterAccount> followees; 
+		for(UserAccount targetUser: daoUser.listUsers(true, false)){
+			
+			followees = new ArrayList<TwitterAccount>();
+			for(UserAccount followee: targetUser.getFollowees()){
+				followees.add(new TwitterAccount(followee.getScreenName()));
+			}
+			
+			usersNetwork.put(targetUser.getScreenName(), followees);			
+			
+		}
+		
+		return usersNetwork;
 	}
 
 	

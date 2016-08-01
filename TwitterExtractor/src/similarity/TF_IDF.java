@@ -3,6 +3,8 @@ package similarity;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringUtils;
+
 public class TF_IDF {
 	
 	public TF_IDF(){
@@ -25,25 +27,13 @@ public class TF_IDF {
      * @param termToCheck : term of which tf is to be calculated.
      * @return tf(term frequency) of term termToCheck
      */
-    private double tfCalculator(String text, String termToCheck) 
+    public double tfCalculator(String text, String termToCheck) 
     {
-        double count = 0;
-        double textSize = 1;
-        String word = "";
-        double tf = 0;
+        double count = 0, textSize = 0, tf = 0;
         
-        StringTokenizer st = new StringTokenizer(text);		
-        
-		while(st.hasMoreElements()){
-			
-			word = (String) st.nextElement();
-			
-			if (word.equalsIgnoreCase(termToCheck))
-                count++;
-			
-			textSize++;
-		}
-        
+        count = StringUtils.countMatches(text, termToCheck);
+        textSize = text.split(" ").length;        		
+             
 		tf = count / textSize;            
         
         return tf;
@@ -55,29 +45,23 @@ public class TF_IDF {
      * @param termToCheck
      * @return idf(inverse document frequency) score
      */
-    private double idfCalculator(List<String> allTexts, String termToCheck) 
+    public double idfCalculator(List<String> allTexts, String termToCheck) 
     {
         double count = 0;
-        String word = "";
-        
-        StringTokenizer st;	
-        for (String ss : allTexts)
-        {
-        	st = new StringTokenizer(ss);
+        double idf = 0;
+      	
+        for (String ss : allTexts){
         	
-        	while(st.hasMoreElements()){
-        		word = (String) st.nextElement();
-        		
-        		 if (word.equalsIgnoreCase(termToCheck))
-                 {
-                     count++;
-                     break;
-                 }
-        	}
-            
+        	if (ss.contains(termToCheck))
+        		count++;
         }
         
-        return Math.log(allTexts.size() / count);
+        if(count != 0)
+        	idf = 1 + Math.log(allTexts.size() / count);
+        else
+        	idf = 1;
+     
+        return idf;
     }     
    
     

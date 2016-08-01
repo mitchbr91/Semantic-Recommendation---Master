@@ -67,7 +67,7 @@ public class UserDao{
 		 Transaction tx = null;
 		
 		
-		 String sql = "from tb_user WHERE screen_name = " + screenname;
+		 String sql = "from tb_user WHERE screen_name = " + "\'" + screenname + "\'";
 		 
 		 UserAccount user = null;
 		 try{
