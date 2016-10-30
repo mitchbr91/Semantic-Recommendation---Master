@@ -99,24 +99,29 @@ public class InferenceManager {
 	    String inferedUserName;
         int inferedPoints;
         TwitterAccount user = null;       
-        List<String> targetUserSet = new ArrayList<String>();
+        Map<String,Long> targetUserSet = new HashMap<String,Long>();
         
         List<String> ontologies = new ArrayList<String>();
-        
+        String oName;
+               
         //Get the name of all ontologies 
         for(UserAccount u: daoUser.listUsers(true, false)){
-        	targetUserSet.add(u.getScreenName());
-        	ontologies.add("TwitterOntology-" + u.getScreenName() + ".owl");        
+        	if(!u.infered()){
+        		oName = "TwitterOntology-" + u.getScreenName() + ".owl";        	  
+            	ontologies.add(oName); 
+            	targetUserSet.put(oName,u.getIDUser());
+        	}             
         }
         
         System.out.println("Ontologies size: " + ontologies.size());
         ExplanationGeneratorFactory<OWLAxiom> genFac =
     			ExplanationManager.createExplanationGeneratorFactory(reasonerFactory);
         
-      
+             
         
-        String targetU;
-        int inf = 0;
+        String targetU = null;
+        long tUser;
+        
         for(String ontologyName: ontologies){
         	
         	File ontologyFile = new File(ontologyName);
@@ -132,7 +137,7 @@ public class InferenceManager {
         	
         	System.out.println("Ontology IRI: " + ontology.getOntologyID().getOntologyIRI());
         	
-        	
+        	UserAccount inference;
         	for(String rule: RulesManager.getRules().keySet()){
     	    	
         		
@@ -181,7 +186,7 @@ public class InferenceManager {
 		        				        		
 		        		System.out.println("Na und - ELSE");
 	        			ruleWeight = rulesWeights.get(rule);
-	        			explanation = gen.getExplanations(axiomToExplain, 10);	        		
+	        			//explanation = gen.getExplanations(axiomToExplain, 10);	        		
 		        		inferedPoints = ruleWeight*explanation.size();
 	        		}
 	        		
@@ -193,7 +198,8 @@ public class InferenceManager {
 	        		//inf++;
 	        			 
 	        		twitterAccountList.add(user);        
-	        		System.out.println("Some inference: " + inferedUserName + " - Points: " + inferedPoints);
+	        		System.out.println("Some inference: " + inferedUserName + " - Points: " + inferedPoints);       		
+	        		
 	            }
 	        	 
 	        	if(!inferedFollowees.containsKey(targetU))	        	
@@ -234,8 +240,26 @@ public class InferenceManager {
     	    }
         	
         	manager.removeOntology(ontology);
+        	        	
+        	// Use targetU as key to access inferedFollowees and get all the followees infered for a target user
+        	//I need to convert from a TwitterAccount to a UserAccount
         	
         	
+        	tUser = daoUser.getUserByScreenname(targetU, false).getIDUser();
+        	
+        	for(TwitterAccount ta: inferedFollowees.get(targetU)){
+        		       		
+        		System.out.println(targetU + " - Infered: " + ta.getName() + " - Points: " + ta.getInferedPoints());
+        		inference = daoUser.getUserByScreenname(ta.getName(), false);
+        		
+        		if (inference != null){
+        			inference.setInferedPoints(ta.getInferedPoints());        		
+            		daoUser.insertInference(tUser, inference);
+        		}        		
+        		
+        	}
+        	
+        	daoUser.updateInfered(targetUserSet.get(ontologyName));
         }
         
         //System.out.println("Total inferido: " + inf);

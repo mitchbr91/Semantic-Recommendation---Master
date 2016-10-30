@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
     <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
-        <uri id="Automatically generated entry, Timestamp=1469973004671" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-Alanpeter_.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1469973004671" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-laneprc.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1469973004671" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-Alanpeter_.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-DiegoH2222.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-earlbittencourt.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-freddurao.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-gbrlamota.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology-laneprc.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1474623920137" name="duplicate:http://www.w3.org/2002/07/owl" uri="TwitterOntology.owl"/>
     </group>
 </catalog>

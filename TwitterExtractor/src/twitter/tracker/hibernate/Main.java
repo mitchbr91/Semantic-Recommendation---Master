@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 
+import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.HibernateUtil;
 import persistence.entities.hibernate.UserAccount;
 import similarity.SimilarityManager;
@@ -74,27 +75,48 @@ public class Main {
              
         List<User> users = new ArrayList<User>();
         
-        try {
-			//users.add(twitter.showUser("laneprc"));
-			users.add(twitter.showUser("alanpeter_"));
+        try {			
+			users.add(twitter.showUser("earlbittencourt"));
+			users.add(twitter.showUser("gbrlamota"));
+			users.add(twitter.showUser("DiegoH2222"));
+			users.add(twitter.showUser("freddurao"));
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+        
+        
+        //extractor.extractTweets();
+        //annotator.createData();      
         
         Map<String, List<TwitterAccount>> inferedUsers = null;
         Map<String, List<TwitterAccount>> usersWithNoInteractions = null;
         Map<String, java.util.List<TwitterAccount>> usersToBeUnfollowed = null;
         inferedUsers = inference.infer();        
         usersWithNoInteractions = inference.extractUsersWithNoInteractions(inferedUsers);
-        usersToBeUnfollowed = similarityManager.calculateSimilarity(usersWithNoInteractions, 20);
-               
-        System.out.println("Semantic Recommendation");        
+        usersToBeUnfollowed = similarityManager.calculateSimilarity(usersWithNoInteractions, 15);
         
-        BufferedWriter buffWrite = null;
-		      
-        File file;
         List<TwitterAccount> accounts = null;
+        BufferedWriter buffWrite = null;	      
+        File file;
+        UserDao daoUser = new UserDao();
+        UserAccount targetUser;
+        for(String key: usersToBeUnfollowed.keySet()){
+           					
+        	accounts = usersToBeUnfollowed.get(key);
+			targetUser = daoUser.getUserByScreenname(key, false);			
+			
+			for(TwitterAccount followee: accounts){									
+				daoUser.insertSemanticRecommendation(targetUser.getIDUser(),
+						daoUser.getUserByScreenname(followee.getName(), false));
+				
+			}		
+			
+        }
+        
+        
+        System.out.println("Semantic Recommendation");           
+     
         for(String key: usersToBeUnfollowed.keySet()){
         	
         	try {
@@ -118,9 +140,27 @@ public class Main {
         }
         
         Map<String, List<TwitterAccount>> network = inference.getUsersNetwork();
-        usersToBeUnfollowed = similarityManager.calculateSimilarity(network, 20);        
+        usersToBeUnfollowed = similarityManager.calculateSimilarity(network, 15);        
         
         System.out.println("Regular Recommendation");
+        
+        UserAccount user = null;
+        for(String key: usersToBeUnfollowed.keySet()){
+				
+        	accounts = usersToBeUnfollowed.get(key);
+			targetUser = daoUser.getUserByScreenname(key, false);			
+			
+			for(TwitterAccount followee: accounts){
+				
+				user = daoUser.getUserByScreenname(followee.getName(), false);
+				
+				System.out.println(targetUser + " - " + user.getScreenName());
+				daoUser.insertRegularRecommendation(targetUser.getIDUser(),
+						user);
+				
+			}		
+			
+        }	
         
         accounts = null;
         for(String key: usersToBeUnfollowed.keySet()){

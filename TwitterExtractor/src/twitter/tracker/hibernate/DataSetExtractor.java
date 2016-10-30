@@ -592,16 +592,23 @@ public class DataSetExtractor {
 				
 				lists = twitter.getUserLists(listOwner.getScreenName());				
 					
-				for(UserList list: lists){						
-					listOwner = daoUser.getUser(list.getUser().getId(), false);
+				//Garantir que as listas pertencem aos usuários alvos. Para tanto, filtrar dentro do for!!!
+				System.out.println("List Owner: " + listOwner.getScreenName());
+				for(UserList list: lists){			
 					
-					l = new persistence.entities.hibernate.List(list.getId(), list.getName(), list.getDescription(), listOwner);
+					if (listOwner.getScreenName().equalsIgnoreCase(list.getUser().getScreenName())){
+						System.out.println("ListOwner - " + list.getUser().getScreenName() + " ----- list - " + list.getName());
+						listOwner = daoUser.getUser(list.getUser().getId(), false);
 						
-					//Extract members from list and insert them into it
-					extracListsMembers(l);
-						
-					//Persist list
-					daoList.insertList(l);									
+						l = new persistence.entities.hibernate.List(list.getId(), list.getName(), list.getDescription(), listOwner);
+							
+						//Extract members from list and insert them into it
+						extracListsMembers(l);
+							
+						//Persist list
+						daoList.insertList(l);		
+					}
+												
 				}
 				
 				

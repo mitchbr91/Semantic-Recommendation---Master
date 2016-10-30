@@ -51,5 +51,6 @@
 	<classpathentry kind="lib" path="lib/owl-explanation/owlapi-osgidistribution-4.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/owl-explanation/owlexplanation-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/owl-explanation/telemetry-2.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/javax.mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

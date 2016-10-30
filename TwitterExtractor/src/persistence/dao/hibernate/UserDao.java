@@ -301,6 +301,126 @@ public class UserDao{
 		 
 	 }
 	 
+	 public void insertInference(Long userID, UserAccount inference){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		 
+		 List<UserAccount> inferences;
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	         
+	         inferences = user.getInferences();
+	         
+	         if(!inferences.contains(inference)){	         
+	        	 user.getInferences().add(inference);
+	        	 session.update(user); 
+	         }
+	         
+			 
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+		 
+	 }
+	 
+	 public void insertUnfollow(Long userID, UserAccount unfollow){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		 
+		 List<UserAccount> unfollows;
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	         
+	         unfollows = user.getUnfollows();
+	         
+	         if(!unfollows.contains(unfollow)){	         
+	        	 user.getUnfollows().add(unfollow);
+	        	 session.update(user); 
+	         }
+	         
+			 
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+		 
+	 }
+	 
+	 public void insertSemanticRecommendation(Long userID, UserAccount semanticRecommendation){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		 
+		 List<UserAccount> semanticRecommendations;
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	         
+	         semanticRecommendations = user.getSemanticRecommendations();
+	         
+	         if(!semanticRecommendations.contains(semanticRecommendation)){	         
+	        	 user.getSemanticRecommendations().add(semanticRecommendation);
+	        	 session.update(user); 
+	         }
+	         
+			 
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+		 
+	 }
+
+	 public void insertRegularRecommendation(Long userID, UserAccount regularRecommendation){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		 
+		 List<UserAccount> regularRecommendations;
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	         
+	         regularRecommendations = user.getRegularRecommendations();
+	         
+	         if(!regularRecommendations.contains(regularRecommendation)){	         
+	        	 user.getRegularRecommendations().add(regularRecommendation);
+	        	 session.update(user); 
+	         }
+	         
+			 
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+		 
+	 }
+	 
 	 public void deleteUser(Long userID){
 		 
 		 sf = HibernateUtil.getSessionFactory();
@@ -347,5 +467,27 @@ public class UserDao{
 	      }
 	 }
 	
+	 public void updateInfered(Long userID){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	        
+	         user.setInfered(true);	         
+	         session.update(user); 
+	         	        			 
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+	 }
 	
 }

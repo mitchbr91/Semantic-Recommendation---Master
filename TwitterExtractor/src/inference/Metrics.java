@@ -13,6 +13,7 @@ import java.util.Random;
 
 import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.UserAccount;
+import twitter.tracker.hibernate.MyComparatorCosineSimilarity;
 import twitter.tracker.hibernate.MyComparatorInferedPoints;
 import twitter.tracker.hibernate.TwitterAccount;
 
@@ -24,54 +25,61 @@ public class Metrics {
 		daoUser = new UserDao();
 	}
 		
-	public void calculateMetrics(int metricRate, Map<String, List<TwitterAccount>> inferedFollowees){
+	public void calculateMetrics(int metricRate, boolean semantic,  Map<String, List<TwitterAccount>> acceptedFollowees){
 		
 		
-		Map<String, List<String>> usersFolloweeNetwork = new HashMap<String, List<String>>(); 
+		Map<String, List<String>> recommendedFollowees = new HashMap<String, List<String>>(); 
 		
 		List<UserAccount> targetUsers = daoUser.listUsers(true, false);
-		List<String> followees;
+		List<String> recommendations;
 		
 		for(UserAccount targetUser: targetUsers){
 			
-			followees = new ArrayList<String>();
-			for(UserAccount followee: targetUser.getFollowees()){
-				followees.add(followee.getScreenName());
-			}			
+			recommendations = new ArrayList<String>();
 			
-			usersFolloweeNetwork.put(targetUser.getScreenName(), followees);			
+			if (semantic){
+				for(UserAccount recommendation: targetUser.getSemanticRecommendations()){
+					recommendations.add(recommendation.getScreenName());
+				}
+			}else{
+				for(UserAccount recommendation: targetUser.getRegularRecommendations()){
+					recommendations.add(recommendation.getScreenName());
+				}
+			}						
+			
+			recommendedFollowees.put(targetUser.getScreenName(), recommendations);			
 		}		
 		
-		System.out.println("MAP: " + calculateMAP(usersFolloweeNetwork, inferedFollowees));
-		System.out.println("Recall: " + calculateRecall(metricRate, usersFolloweeNetwork,inferedFollowees));
+		System.out.println("MAP: " + calculateMAP(recommendedFollowees, acceptedFollowees));
+		System.out.println("Recall: " + calculateRecall(metricRate, recommendedFollowees, acceptedFollowees));
 	}
 	
-	public void calculateMetrics(int metricRate, Map<String, List<String>> usersFolloweeNetwork, Map<String, List<TwitterAccount>> inferedFollowees){
-		System.out.println("MAP: " + calculateMAP(usersFolloweeNetwork, inferedFollowees));
-		calculateRecall(metricRate, usersFolloweeNetwork,inferedFollowees);
+	public void calculateMetrics(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<TwitterAccount>> acceptedFollowees){
+		System.out.println("MAP: " + calculateMAP(recommendedFollowees, acceptedFollowees));
+		calculateRecall(metricRate, recommendedFollowees,acceptedFollowees);
 	}
 	
-	private double calculateMAP(Map<String, List<String>> usersFolloweeNetwork, Map<String, List<TwitterAccount>> inferedFollowees){
+	private double calculateMAP(Map<String, List<String>> recommendedFollowees, Map<String, List<TwitterAccount>> acceptedFollowees){
 		
-		List<TwitterAccount> inferedUsers;
-		List<String> followedUsers;
+		List<TwitterAccount> acceptedUsers;
+		List<String> recommendedUsers;
 		double averagePrecisionSum = 0;		
 		
 	
-	    for(String user :usersFolloweeNetwork.keySet()){
+	    for(String user :recommendedFollowees.keySet()){
 				
-	    	inferedUsers = inferedFollowees.get(user);
+	    	acceptedUsers = acceptedFollowees.get(user);
 						
-			inferedUsers.sort(new MyComparatorInferedPoints());
-			Collections.reverse(inferedUsers);
+			acceptedUsers.sort(new MyComparatorCosineSimilarity());
+			Collections.reverse(acceptedUsers);
 				
-			followedUsers = usersFolloweeNetwork.get(user);
+			recommendedUsers = recommendedFollowees.get(user);
 						
-			averagePrecisionSum += calculateAveragePrecision(inferedUsers, followedUsers);
+			averagePrecisionSum += calculateAveragePrecision(acceptedUsers, recommendedUsers);
 				
 		}	
 		
-		return averagePrecisionSum/usersFolloweeNetwork.keySet().size();
+		return averagePrecisionSum/recommendedFollowees.keySet().size();
 	}
 	
 
@@ -86,17 +94,17 @@ public class Metrics {
 		return relevant;
 	}
 	
-	private double calculateAveragePrecision(List<TwitterAccount> inferedUsers, List<String> followedUsers){
+	private double calculateAveragePrecision(List<TwitterAccount> acceptedUsers, List<String> recommendedUsers){
 		
 		boolean relevant;
 		double totalHits = 0;
 		double relevantHits = 0;
 		double partialAverage = 0;		
 		
-		for(TwitterAccount account: inferedUsers){		
+		for(TwitterAccount account: acceptedUsers){		
 					
 			
-			relevant = checkUserRelevance(account.getName(), followedUsers);
+			relevant = checkUserRelevance(account.getName(), recommendedUsers);
 			totalHits++;
 			
 			if(relevant){				
@@ -111,53 +119,53 @@ public class Metrics {
 		return partialAverage/relevantHits;		
 	}
 	
-	private double calculateRecall(int metricRate, Map<String, List<String>> usersFolloweeNetwork, Map<String, List<TwitterAccount>> inferedFollowees){
+	private double calculateRecall(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<TwitterAccount>> acceptedFollowees){
 		
 		
-		List<TwitterAccount> inferedUsers;
-		List<String> followedUsers;
+		List<TwitterAccount> acceptedUsers;
+		List<String> recommendedUsers;
 		double averageRecallSum = 0;	
 		
 	
-	    for(String user :usersFolloweeNetwork.keySet()){
+	    for(String user :recommendedFollowees.keySet()){
 				
-	    	inferedUsers = inferedFollowees.get(user);
+	    	acceptedUsers = acceptedFollowees.get(user);
 				
 			//Ordering the List
-			inferedUsers.sort(new MyComparatorInferedPoints());
-			Collections.reverse(inferedUsers);
+			acceptedUsers.sort(new MyComparatorInferedPoints());
+			Collections.reverse(acceptedUsers);
 				
-			followedUsers = usersFolloweeNetwork.get(user);
+			recommendedUsers = recommendedFollowees.get(user);
 						
-			averageRecallSum += calculateIndivualRecall(metricRate, inferedUsers, followedUsers);
+			averageRecallSum += calculateIndivualRecall(metricRate, acceptedUsers, recommendedUsers);
 				
 		}	
 		
-		return averageRecallSum/usersFolloweeNetwork.keySet().size();
+		return averageRecallSum/recommendedFollowees.keySet().size();
 		
 	}
 	
-	private double calculateIndivualRecall(int metricRate, List<TwitterAccount> inferedUsers, List<String> followedUsers){
+	private double calculateIndivualRecall(int metricRate, List<TwitterAccount> acceptedUsers, List<String> recommendedUsers){
 		
 		boolean relevant;		
 		double relevantHits = 0;
 		int limit;
 		
 		if(metricRate == 0){
-			limit = inferedUsers.size();
+			limit = acceptedUsers.size();
 		}else{
 			limit = metricRate;
 		}
 		
 		for(int i = 0; i < limit; i++){
-			relevant = checkUserRelevance(inferedUsers.get(i).getName(), followedUsers);
+			relevant = checkUserRelevance(acceptedUsers.get(i).getName(), recommendedUsers);
 			
 			if(relevant){				
 				relevantHits++;			
 			}
 		}			
 		
-		return relevantHits/followedUsers.size();
+		return relevantHits/recommendedUsers.size();
 		
 		
 	}

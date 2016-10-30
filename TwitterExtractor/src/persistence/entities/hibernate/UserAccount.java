@@ -54,6 +54,35 @@ public class UserAccount{
         inverseJoinColumns={@JoinColumn(name="followee_id")})    
     private List<UserAccount> followees;
 	
+    
+    //Inferences that have been made
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="`USER_INFERENCE`",
+        joinColumns={@JoinColumn(name="user_id")},
+        inverseJoinColumns={@JoinColumn(name="inference_id")})    
+    private List<UserAccount> inferences;
+    
+  //What users have been recommended - Semantic
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="`SEMANTIC_RECOMMENDATION`",
+        joinColumns={@JoinColumn(name="user_id")},
+        inverseJoinColumns={@JoinColumn(name="recommendation_id")})    
+    private List<UserAccount> semanticRecommendations;
+    
+  //What users have been recommended - Regular
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="`REGULAR_RECOMMENDATION`",
+        joinColumns={@JoinColumn(name="user_id")},
+        inverseJoinColumns={@JoinColumn(name="recommendation_id")})    
+    private List<UserAccount> regularRecommendations;
+    
+    //What users have accepted to unfollow
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="`USER_UNFOLLOW`",
+        joinColumns={@JoinColumn(name="user_id")},
+        inverseJoinColumns={@JoinColumn(name="unfollow_id")})    
+    private List<UserAccount> unfollows;
+    
     @Column(name = "created_at")
     @Type(type="date")
     private Date createdAt;	
@@ -100,6 +129,14 @@ public class UserAccount{
 	@Column(name = "tweets_collected")
 	private boolean tweetsCollected;
 	
+	@Column(name = "infered")
+	private boolean infered;
+	
+	@Column(name = "cosine_similarity")
+	private double cosineSimilarity;
+	
+	@Column(name = "infered_points")
+	private int inferedPoints;
 	
 	public UserAccount(){
 		
@@ -125,10 +162,14 @@ public class UserAccount{
 		this.screenName = screenName;
 		this.statusesCount = statusesCount;
 		this.isVerified = isVerified;
-		this.targetUser = targetUser;
+		this.targetUser = targetUser;		
 		
 		favorites = new ArrayList<Tweet>();
 		followees = new ArrayList<UserAccount>();
+		inferences = new ArrayList<UserAccount>();
+		regularRecommendations = new ArrayList<UserAccount>();
+		semanticRecommendations = new ArrayList<UserAccount>();
+		unfollows = new ArrayList<UserAccount>();
 		retweets = new ArrayList<Tweet>();  
 		lists = new ArrayList<persistence.entities.hibernate.List>();
 		tweets = new ArrayList<Tweet>();	
@@ -307,7 +348,22 @@ public class UserAccount{
 		if(!followees.contains(followee))
 			followees.add(followee);
 	}
-		
+	
+	public List<UserAccount> getInferences() {
+		return inferences;
+	}
+	
+	public List<UserAccount> getUnfollows() {
+		return unfollows;
+	}
+	
+	public List<UserAccount> getSemanticRecommendations() {
+		return semanticRecommendations;
+	}
+	
+	public List<UserAccount> getRegularRecommendations() {
+		return regularRecommendations;
+	}
 	
 	public boolean tweetsCollected() {
 		return tweetsCollected;
@@ -315,6 +371,30 @@ public class UserAccount{
 
 	public void setTweetsCollected(boolean tweetsCollected) {
 		this.tweetsCollected = tweetsCollected;
+	}
+	
+	public boolean infered() {
+		return infered;
+	}
+
+	public void setInfered(boolean infered) {
+		this.infered = infered;
+	}
+	
+	public double cosineSimilarity() {
+		return cosineSimilarity;
+	}
+
+	public void setCosineSimilarity(double cosineSimilarity) {
+		this.cosineSimilarity = cosineSimilarity;
+	}
+	
+	public int getInferedPoints() {
+		return inferedPoints;
+	}
+
+	public void setInferedPoints(int inferedPoints) {
+		this.inferedPoints = inferedPoints;
 	}
 
 	@Override
