@@ -10,10 +10,14 @@ import java.util.StringTokenizer;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 
+import inference.InferenceManager;
 import persistence.dao.hibernate.UserDao;
+import persistence.entities.hibernate.RegularRecommendation;
+import persistence.entities.hibernate.SemanticRecommendation;
 import persistence.entities.hibernate.Tweet;
 import persistence.entities.hibernate.UserAccount;
-import twitter.tracker.hibernate.MyComparatorCosineSimilarity;
+import twitter.tracker.hibernate.SemanticComparatorCosineSimilarity;
+import twitter.tracker.hibernate.TAComparatorCosineSimilarity;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class SimilarityManager {
@@ -27,14 +31,22 @@ public class SimilarityManager {
 		daoUser = new UserDao();
 	}
 	
-	public Map<String, java.util.List<TwitterAccount>> calculateSimilarity(Map<String, List<TwitterAccount>> usersNetwork, int size){
+	public Map<String, java.util.List<TwitterAccount>> calculateSimilarity(int size, boolean semantic){
 		
 		Map<String, String> normalizedTweets;
 		Map<String, java.util.List<Double>> tf_idfs;
 		java.util.List<TwitterAccount> unsimilarUsers;
-		List<TwitterAccount> usersWithLowInteraction;
+		List<UserAccount> usersWithLowInteraction;
 		Map<String, java.util.List<TwitterAccount>> usersToBeUnfollowed = new HashMap<String, java.util.List<TwitterAccount>>();
-		
+		Map<String, List<UserAccount>> usersNetwork = null;
+		InferenceManager infManager = new InferenceManager();
+				
+		for(UserAccount user: daoUser.listUsers(true, false)){
+			if(semantic)
+				usersNetwork = infManager.extractUsersWithNoInteractions();
+			else
+				usersNetwork = getUsersNetwork();
+		}
 		
 		for(String targetUserScreenname: usersNetwork.keySet()){
 			usersWithLowInteraction = usersNetwork.get(targetUserScreenname);
@@ -43,7 +55,7 @@ public class SimilarityManager {
 			System.out.println("Normalized");
 			tf_idfs = calculateTF_IDF(targetUserScreenname, normalizedTweets);
 			System.out.println("TF-IDF Calculated");
-			unsimilarUsers = calculateCosineSimilarity(targetUserScreenname, tf_idfs, size);
+			unsimilarUsers = calculateCosineSimilarity(targetUserScreenname, tf_idfs, size, semantic);
 			System.out.println("Cosine similarity calculated");
 			
 			usersToBeUnfollowed.put(targetUserScreenname, unsimilarUsers);
@@ -51,11 +63,11 @@ public class SimilarityManager {
 		}
 		
 		System.out.println("calculateSimilarity - Method");
-	
+		
 		return usersToBeUnfollowed;
 	}
 	
-	private Map<String, String> normalizeTweets(String targetUserScreenname, List<TwitterAccount> usersWithLowInteraction){
+	private Map<String, String> normalizeTweets(String targetUserScreenname, List<UserAccount> usersWithLowInteraction){
 		
 		//-------------------- Get All tweets from the database
 		
@@ -85,7 +97,7 @@ public class SimilarityManager {
 		for(UserAccount followee: targetUser.getFollowees()){
 			
 			while(i < usersWithLowInteraction.size() && !found){
-				if(followee.getScreenName().equalsIgnoreCase(usersWithLowInteraction.get(i).getName())){
+				if(followee.getScreenName().equalsIgnoreCase(usersWithLowInteraction.get(i).getScreenName())){
 					found = true;						
 				}
 				
@@ -229,13 +241,13 @@ public class SimilarityManager {
 		return distinctTerms;
 	}
 	
-	private java.util.List<TwitterAccount> calculateCosineSimilarity(String targetUserScreenname, Map<String, java.util.List<Double>> tf_idfUsersMap, int size){
+	private java.util.List<TwitterAccount> calculateCosineSimilarity(String targetUserScreenname, Map<String, java.util.List<Double>> tf_idfUsersMap, int size, boolean semantic){
 	
 		//----------------------- Apply cosine similitary function
 		
 		java.util.List<Double> tf_idf2 = new ArrayList<Double>();	
 		java.util.List<TwitterAccount> similarity = null;
-		
+		UserDao daoUser = new UserDao();
 		java.util.List<Double> tf_idfTargetUser;
 		
 		double[] vet1;
@@ -264,9 +276,29 @@ public class SimilarityManager {
 	
 		// I need to take the n followees with lowest value of cosine similarity
 		List<TwitterAccount> unsimilarUsers = new ArrayList<TwitterAccount>();
-		similarity.sort(new MyComparatorCosineSimilarity());
+		similarity.sort(new TAComparatorCosineSimilarity());
 		for (int i = 0; i < size; i++){
 			unsimilarUsers.add(similarity.get(i));
+		}
+		
+		UserAccount tUser = daoUser.getUserByScreenname(targetUserScreenname, false);
+		UserAccount recommendation;
+		if(semantic){
+			SemanticRecommendation semanticRecommendation;
+			
+			for(TwitterAccount ta: unsimilarUsers){
+				recommendation = daoUser.getUserByScreenname(ta.getName(), false);				
+				semanticRecommendation = new SemanticRecommendation(tUser, recommendation, ta.getCosineSimilarity());
+				daoUser.insertSemanticRecommendation(tUser.getIDUser(), semanticRecommendation);
+			}
+		}else{
+			RegularRecommendation regularRecommendation;
+			
+			for(TwitterAccount ta: unsimilarUsers){
+				recommendation = daoUser.getUserByScreenname(ta.getName(), false);				
+				regularRecommendation = new RegularRecommendation(tUser, recommendation, ta.getCosineSimilarity());
+				daoUser.insertRegularRecommendation(tUser.getIDUser(), regularRecommendation);
+			}
 		}
 		
 		return unsimilarUsers;
@@ -339,6 +371,30 @@ public class SimilarityManager {
 					
 		return unsimilarUsers;
 	
+	}
+	
+	/**
+	 * Return for each target user the list of his/her followees. This set will be used to calculate similarity between a user 
+	 * and his followees without analyse semantic interaction between users.
+	 * @return
+	 */
+	public Map<String, List<UserAccount>> getUsersNetwork(){
+		
+		Map<String, List<UserAccount>> usersNetwork = new HashMap<String, List<UserAccount>>();
+		
+		List<UserAccount> followees; 
+		for(UserAccount targetUser: daoUser.listUsers(true, false)){
+			
+			followees = new ArrayList<UserAccount>();
+			for(UserAccount followee: targetUser.getFollowees()){
+				followees.add(followee);
+			}
+			
+			usersNetwork.put(targetUser.getScreenName(), followees);			
+			
+		}
+		
+		return usersNetwork;
 	}
 			
 

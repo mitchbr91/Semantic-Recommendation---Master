@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import ptstemmer.Stemmer;
 import ptstemmer.exceptions.PTStemmerException;
 import ptstemmer.implementations.OrengoStemmer;
-import twitter.tracker.hibernate.MyComparatorCosineSimilarity;
+import twitter.tracker.hibernate.SemanticComparatorCosineSimilarity;
 import twitter.tracker.hibernate.TwitterAccount;
 
 public class Main {

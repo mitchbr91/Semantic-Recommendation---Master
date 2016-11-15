@@ -60,7 +60,7 @@ public class URLDao {
 	        if (tx!=null) tx.rollback();
 	        //e.printStackTrace();
 	        
-	        System.out.println("URL: " + url.getUrl());
+	        
 	    }finally {
 	    	session.clear();
 	        session.close(); 	 

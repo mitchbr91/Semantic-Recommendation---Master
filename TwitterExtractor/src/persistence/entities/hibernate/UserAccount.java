@@ -56,32 +56,28 @@ public class UserAccount{
 	
     
     //Inferences that have been made
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="`USER_INFERENCE`",
-        joinColumns={@JoinColumn(name="user_id")},
-        inverseJoinColumns={@JoinColumn(name="inference_id")})    
-    private List<UserAccount> inferences;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade=CascadeType.ALL)  
+    private List<UserInference> inferences;
     
-  //What users have been recommended - Semantic
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="`SEMANTIC_RECOMMENDATION`",
-        joinColumns={@JoinColumn(name="user_id")},
-        inverseJoinColumns={@JoinColumn(name="recommendation_id")})    
-    private List<UserAccount> semanticRecommendations;
-    
-  //What users have been recommended - Regular
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="`REGULAR_RECOMMENDATION`",
-        joinColumns={@JoinColumn(name="user_id")},
-        inverseJoinColumns={@JoinColumn(name="recommendation_id")})    
-    private List<UserAccount> regularRecommendations;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade=CascadeType.ALL)
+    private List<SemanticRecommendation> semanticRecommendations;
+     
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade=CascadeType.ALL)
+    private List<RegularRecommendation> regularRecommendations;
     
     //What users have accepted to unfollow
     @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(name="`USER_UNFOLLOW`",
+    @JoinTable(name="`REGULAR_UNFOLLOW`",
         joinColumns={@JoinColumn(name="user_id")},
         inverseJoinColumns={@JoinColumn(name="unfollow_id")})    
-    private List<UserAccount> unfollows;
+    private List<UserAccount> regularUnfollows;
+    
+  //What users have accepted to unfollow
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name="`SEMANTIC_UNFOLLOW`",
+        joinColumns={@JoinColumn(name="user_id")},
+        inverseJoinColumns={@JoinColumn(name="unfollow_id")})    
+    private List<UserAccount> semanticUnfollows;
     
     @Column(name = "created_at")
     @Type(type="date")
@@ -132,16 +128,13 @@ public class UserAccount{
 	@Column(name = "infered")
 	private boolean infered;
 	
-	@Column(name = "cosine_similarity")
-	private double cosineSimilarity;
-	
 	@Column(name = "infered_points")
 	private int inferedPoints;
 	
 	public UserAccount(){
 		
 	}
-	
+		
 	public UserAccount(long idUser,
 			Date createdAt, int favouritesCount, int friendsCount,
 			int followersCount, String lang, String location,
@@ -166,10 +159,11 @@ public class UserAccount{
 		
 		favorites = new ArrayList<Tweet>();
 		followees = new ArrayList<UserAccount>();
-		inferences = new ArrayList<UserAccount>();
-		regularRecommendations = new ArrayList<UserAccount>();
-		semanticRecommendations = new ArrayList<UserAccount>();
-		unfollows = new ArrayList<UserAccount>();
+		inferences = new ArrayList<UserInference>();		
+		regularRecommendations = new ArrayList<RegularRecommendation>();
+		semanticRecommendations = new ArrayList<SemanticRecommendation>();
+		regularUnfollows = new ArrayList<UserAccount>();
+		semanticUnfollows = new ArrayList<UserAccount>();
 		retweets = new ArrayList<Tweet>();  
 		lists = new ArrayList<persistence.entities.hibernate.List>();
 		tweets = new ArrayList<Tweet>();	
@@ -179,10 +173,34 @@ public class UserAccount{
 	
 	public UserAccount(String screenNanme){
 		this.screenName = screenNanme;
+		
+		favorites = new ArrayList<Tweet>();
+		followees = new ArrayList<UserAccount>();
+		inferences = new ArrayList<UserInference>();		
+		regularRecommendations = new ArrayList<RegularRecommendation>();
+		semanticRecommendations = new ArrayList<SemanticRecommendation>();
+		regularUnfollows = new ArrayList<UserAccount>();
+		semanticUnfollows = new ArrayList<UserAccount>();
+		retweets = new ArrayList<Tweet>();  
+		lists = new ArrayList<persistence.entities.hibernate.List>();
+		tweets = new ArrayList<Tweet>();	
+		replies = new ArrayList<Tweet>();   
 	}
 	
 	public UserAccount(long idUser) {
 		this.idUser = idUser;
+		
+		favorites = new ArrayList<Tweet>();
+		followees = new ArrayList<UserAccount>();
+		inferences = new ArrayList<UserInference>();		
+		regularRecommendations = new ArrayList<RegularRecommendation>();
+		semanticRecommendations = new ArrayList<SemanticRecommendation>();
+		regularUnfollows = new ArrayList<UserAccount>();
+		semanticUnfollows = new ArrayList<UserAccount>();
+		retweets = new ArrayList<Tweet>();  
+		lists = new ArrayList<persistence.entities.hibernate.List>();
+		tweets = new ArrayList<Tweet>();	
+		replies = new ArrayList<Tweet>();   
 	}
 	
 	public long getIDUser() {
@@ -349,19 +367,28 @@ public class UserAccount{
 			followees.add(followee);
 	}
 	
-	public List<UserAccount> getInferences() {
+	public List<UserInference> getInferences() {
 		return inferences;
 	}
 	
-	public List<UserAccount> getUnfollows() {
-		return unfollows;
+	public void insertInference(UserInference inference){
+		inferences.add(inference);
 	}
 	
-	public List<UserAccount> getSemanticRecommendations() {
+	public List<UserAccount> getRegularUnfollows() {
+		return regularUnfollows;
+	}
+	
+	public List<UserAccount> getSemanticUnfollows() {
+		return semanticUnfollows;
+	}
+
+	
+	public List<SemanticRecommendation> getSemanticRecommendations() {
 		return semanticRecommendations;
 	}
 	
-	public List<UserAccount> getRegularRecommendations() {
+	public List<RegularRecommendation> getRegularRecommendations() {
 		return regularRecommendations;
 	}
 	
@@ -379,24 +406,8 @@ public class UserAccount{
 
 	public void setInfered(boolean infered) {
 		this.infered = infered;
-	}
+	}	
 	
-	public double cosineSimilarity() {
-		return cosineSimilarity;
-	}
-
-	public void setCosineSimilarity(double cosineSimilarity) {
-		this.cosineSimilarity = cosineSimilarity;
-	}
-	
-	public int getInferedPoints() {
-		return inferedPoints;
-	}
-
-	public void setInferedPoints(int inferedPoints) {
-		this.inferedPoints = inferedPoints;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;

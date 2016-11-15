@@ -52,6 +52,13 @@ public class DataSetExtractor {
 		
 	}
 	
+	public void extractData(List<User> twitterList){
+		extractUsersAndFollowees(twitterList);
+		extractFavorites();
+		extractLists();
+		extractTweets();
+	}
+	
 	public void extractUsersAndFollowees(List<User> twitterList){	
 		
 		User newUser;	

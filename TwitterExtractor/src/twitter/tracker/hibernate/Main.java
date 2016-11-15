@@ -1,7 +1,10 @@
 package twitter.tracker.hibernate;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 import inference.InferenceManager;
+import inference.Metrics;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -34,9 +39,14 @@ import org.semanticweb.owlapi.model.SWRLVariable;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 
+import persistence.dao.hibernate.HashtagDao;
 import persistence.dao.hibernate.UserDao;
+import persistence.entities.hibernate.Hashtag;
 import persistence.entities.hibernate.HibernateUtil;
+import persistence.entities.hibernate.RegularRecommendation;
+import persistence.entities.hibernate.SemanticRecommendation;
 import persistence.entities.hibernate.UserAccount;
+import persistence.entities.hibernate.UserInference;
 import similarity.SimilarityManager;
 import twitter4j.Paging;
 import twitter4j.Twitter;
@@ -85,107 +95,155 @@ public class Main {
 			e.printStackTrace();
 		}
         
-        
+        //extractor.extractData(users);
         //extractor.extractTweets();
-        //annotator.createData();      
+        //annotator.createData();
+        
+        double cosineS = 0.4757457;
+        UserDao daoUser = new UserDao();
+        HashtagDao daoHashtag = new HashtagDao();
+        
+       // daoHashtag.insertHashtag(new Hashtag("love"));
+        //System.out.println("Tweets size: " +daoUser.getUserByScreenname("jreisstudio", true).getTweets().size());
+//        try {
+//			UserAccount a = new UserAccount(twitter.showUser("DiegoH2222").getId());
+//			a.setScreenName("DiegoH2222");
+//			daoUser.insertUser(a);
+//			
+//			UserAccount b = new UserAccount(twitter.showUser("freddurao").getId());
+//			b.setScreenName("freddurao");
+//			daoUser.insertUser(b);
+//			
+//			UserAccount c = new UserAccount(twitter.showUser("earlbittencourt").getId());
+//			b.setScreenName("earlbittencourt");
+//			daoUser.insertUser(c);
+//			
+//			RegularRecommendation regularRecommendation = new RegularRecommendation(a,b,cosineS);
+//			daoUser.insertRegularRecommendation(a.getIDUser(), regularRecommendation);
+//		
+//			cosineS = 0.9578312;
+//			SemanticRecommendation semanticRecommendation = new SemanticRecommendation(c,a,cosineS);
+//			daoUser.insertSemanticRecommendation(c.getIDUser(), semanticRecommendation);
+//			
+//			UserInference userInference = new UserInference(b,c,10);
+//			daoUser.insertInference(c.getIDUser(), userInference);
+//
+//			System.out.println("Regular: " + daoUser.getUser(twitter.showUser("DiegoH2222").getId(), true).getRegularRecommendations());			
+//			System.out.println("Regular: " + daoUser.getUser(twitter.showUser("freddurao").getId(), true).getRegularRecommendations());
+//			
+//			System.out.println("Semantic: " + daoUser.getUser(twitter.showUser("earlbittencourt").getId(), true).getSemanticRecommendations());			
+//			System.out.println("Semantic: " + daoUser.getUser(twitter.showUser("DiegoH2222").getId(), true).getSemanticRecommendations());
+//			
+//			System.out.println("Inference: " + daoUser.getUser(twitter.showUser("freddurao").getId(), true).getInferences());			
+//			System.out.println("Inference: " + daoUser.getUser(twitter.showUser("earlbittencourt").getId(), true).getInferences());
+//		} catch (TwitterException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+     
         
         Map<String, List<TwitterAccount>> inferedUsers = null;
-        Map<String, List<TwitterAccount>> usersWithNoInteractions = null;
+        Map<String, List<UserAccount>> usersWithNoInteractions = null;
         Map<String, java.util.List<TwitterAccount>> usersToBeUnfollowed = null;
-        inferedUsers = inference.infer();        
-        usersWithNoInteractions = inference.extractUsersWithNoInteractions(inferedUsers);
-        usersToBeUnfollowed = similarityManager.calculateSimilarity(usersWithNoInteractions, 15);
+//        inferedUsers = inference.infer();   
+        //usersToBeUnfollowed = similarityManager.calculateSimilarity(15, false);
+        Metrics metrics = new Metrics();
         
-        List<TwitterAccount> accounts = null;
-        BufferedWriter buffWrite = null;	      
-        File file;
-        UserDao daoUser = new UserDao();
-        UserAccount targetUser;
-        for(String key: usersToBeUnfollowed.keySet()){
-           					
-        	accounts = usersToBeUnfollowed.get(key);
-			targetUser = daoUser.getUserByScreenname(key, false);			
-			
-			for(TwitterAccount followee: accounts){									
-				daoUser.insertSemanticRecommendation(targetUser.getIDUser(),
-						daoUser.getUserByScreenname(followee.getName(), false));
-				
-			}		
-			
-        }
+        System.out.println("Semantic: ");
+        metrics.calculateMetrics(0, true);
+        System.out.println("Regular: ");
+        metrics.calculateMetrics(0, false);
         
-        
-        System.out.println("Semantic Recommendation");           
-     
-        for(String key: usersToBeUnfollowed.keySet()){
-        	
-        	try {
-        		file = new File("S-"+key+".txt");
-				buffWrite = new BufferedWriter(new FileWriter(file));				
-	        	accounts = usersToBeUnfollowed.get(key);
-				System.out.println("Target user: " + key + "Size: " + accounts.size());
-				
-				for(TwitterAccount followee: accounts){
-					System.out.println("Unfollow: " + followee.getName() + "Similarity: " + followee.getCosineSimilarity());					
-					buffWrite.write(followee.getName() + " - " + followee.getCosineSimilarity());
-					buffWrite.newLine();					
-				}
-				
-				buffWrite.close();
-			
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        }
-        
-        Map<String, List<TwitterAccount>> network = inference.getUsersNetwork();
-        usersToBeUnfollowed = similarityManager.calculateSimilarity(network, 15);        
-        
-        System.out.println("Regular Recommendation");
-        
-        UserAccount user = null;
-        for(String key: usersToBeUnfollowed.keySet()){
-				
-        	accounts = usersToBeUnfollowed.get(key);
-			targetUser = daoUser.getUserByScreenname(key, false);			
-			
-			for(TwitterAccount followee: accounts){
-				
-				user = daoUser.getUserByScreenname(followee.getName(), false);
-				
-				System.out.println(targetUser + " - " + user.getScreenName());
-				daoUser.insertRegularRecommendation(targetUser.getIDUser(),
-						user);
-				
-			}		
-			
-        }	
-        
-        accounts = null;
-        for(String key: usersToBeUnfollowed.keySet()){
-        	
-        	try {
-        		file = new File("R-"+key+".txt");
-				buffWrite = new BufferedWriter(new FileWriter(file));				
-	        	accounts = usersToBeUnfollowed.get(key);
-				System.out.println("Target user: " + key + "Size: " + accounts.size());
-				
-				for(TwitterAccount followee: accounts){
-					System.out.println("Unfollow: " + followee.getName() + "Similarity: " + followee.getCosineSimilarity());					
-					buffWrite.write(followee.getName() + " - " + followee.getCosineSimilarity());
-					buffWrite.newLine();					
-				}
-				
-				buffWrite.close();
-			
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        }
-        
-        System.out.println(new java.util.Date());
+//        List<TwitterAccount> accounts = null;
+//        BufferedWriter buffWrite = null;	      
+//        File file;
+//        UserDao daoUser = new UserDao();
+//        UserAccount targetUser;.
+//        for(String key: usersToBeUnfollowed.keySet()){
+//           					
+//        	accounts = usersToBeUnfollowed.get(key);
+//			targetUser = daoUser.getUserByScreenname(key, false);			
+//			
+//			for(TwitterAccount followee: accounts){									
+//				daoUser.insertSemanticRecommendation(targetUser.getIDUser(),
+//						daoUser.getUserByScreenname(followee.getName(), false));
+//				
+//			}		
+//			
+//        }
+//        
+//        
+//        System.out.println("Semantic Recommendation");           
+//     
+//        for(String key: usersToBeUnfollowed.keySet()){
+//        	
+//        	try {
+//        		file = new File("S-"+key+".txt");
+//				buffWrite = new BufferedWriter(new FileWriter(file));				
+//	        	accounts = usersToBeUnfollowed.get(key);
+//				System.out.println("Target user: " + key + "Size: " + accounts.size());
+//				
+//				for(TwitterAccount followee: accounts){
+//					System.out.println("Unfollow: " + followee.getName() + "Similarity: " + followee.getCosineSimilarity());					
+//					buffWrite.write(followee.getName() + " - " + followee.getCosineSimilarity());
+//					buffWrite.newLine();					
+//				}
+//				
+//				buffWrite.close();
+//			
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//        }
+//        
+//        Map<String, List<TwitterAccount>> network = inference.getUsersNetwork();
+//        usersToBeUnfollowed = similarityManager.calculateSimilarity(network, 15);        
+//        
+//        System.out.println("Regular Recommendation");
+//        
+//        UserAccount user = null;
+//        for(String key: usersToBeUnfollowed.keySet()){
+//				
+//        	accounts = usersToBeUnfollowed.get(key);
+//			targetUser = daoUser.getUserByScreenname(key, false);			
+//			
+//			for(TwitterAccount followee: accounts){
+//				
+//				user = daoUser.getUserByScreenname(followee.getName(), false);
+//				
+//				System.out.println(targetUser + " - " + user.getScreenName());
+//				daoUser.insertRegularRecommendation(targetUser.getIDUser(),
+//						user);
+//				
+//			}		
+//			
+//        }	
+//        
+//        accounts = null;
+//        for(String key: usersToBeUnfollowed.keySet()){
+//        	
+//        	try {
+//        		file = new File("R-"+key+".txt");
+//				buffWrite = new BufferedWriter(new FileWriter(file));				
+//	        	accounts = usersToBeUnfollowed.get(key);
+//				System.out.println("Target user: " + key + "Size: " + accounts.size());
+//				
+//				for(TwitterAccount followee: accounts){
+//					System.out.println("Unfollow: " + followee.getName() + "Similarity: " + followee.getCosineSimilarity());					
+//					buffWrite.write(followee.getName() + " - " + followee.getCosineSimilarity());
+//					buffWrite.newLine();					
+//				}
+//				
+//				buffWrite.close();
+//			
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//        }
+//        
+//        System.out.println(new java.util.Date());
 		HibernateUtil.closeSessionFactory();
 		
 //		SWRLVariable u1 =  factory.getSWRLVariable(IRI.create(ontologyIRI + "#?u1"));

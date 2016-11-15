@@ -1,7 +1,13 @@
 package persistence.dao.hibernate;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -11,8 +17,11 @@ import org.hibernate.Transaction;
 import org.postgresql.util.PSQLException;
 
 import persistence.entities.hibernate.HibernateUtil;
+import persistence.entities.hibernate.RegularRecommendation;
+import persistence.entities.hibernate.SemanticRecommendation;
 import persistence.entities.hibernate.Tweet;
 import persistence.entities.hibernate.UserAccount;
+import persistence.entities.hibernate.UserInference;
 
 public class UserDao{
 	
@@ -102,6 +111,11 @@ public class UserDao{
 	         user = (UserAccount)session.get(UserAccount.class, userID); 	
 	         
 	         Hibernate.initialize(user.getFollowees());  	   
+	         Hibernate.initialize(user.getInferences());
+	         Hibernate.initialize(user.getRegularRecommendations());
+	         Hibernate.initialize(user.getSemanticRecommendations());
+	         Hibernate.initialize(user.getRegularUnfollows());
+	         Hibernate.initialize(user.getSemanticUnfollows());
 	         
 	         if(initialize){
 	        	
@@ -109,8 +123,8 @@ public class UserDao{
 	        	 Hibernate.initialize(user.getFavorites());
 		         Hibernate.initialize(user.getLists());		               
 		         Hibernate.initialize(user.getReplies());
-		         Hibernate.initialize(user.getRetweets());
-		         
+		         Hibernate.initialize(user.getRetweets());		        
+		         		         
 		         for(persistence.entities.hibernate.List list: user.getLists()){
 		        	 Hibernate.initialize(list.getListMembers());
 		         }
@@ -301,37 +315,34 @@ public class UserDao{
 		 
 	 }
 	 
-	 public void insertInference(Long userID, UserAccount inference){
+	 public void insertInference(Long userID, UserInference userInference){
 		 
 		 sf = HibernateUtil.getSessionFactory();
 		 session = sf.openSession();       
 		 tx = null; 
 		 
-		 List<UserAccount> inferences;
+		 	 
 		 try{
 	         tx = session.beginTransaction();
 	         UserAccount user = 
 	                    (UserAccount)session.get(UserAccount.class, userID); 
-	         
-	         inferences = user.getInferences();
-	         
-	         if(!inferences.contains(inference)){	         
-	        	 user.getInferences().add(inference);
-	        	 session.update(user); 
-	         }
-	         
-			 
+	        
+	                  
+	         user.insertInference(userInference);
+	         session.update(user); 
+	        
 	         tx.commit();
 	      }catch (HibernateException e) {
 	         if (tx!=null) tx.rollback();
 	         e.printStackTrace(); 
 	      }finally {
 	         session.close(); 	        
-	      }
+	      }       
+	      
 		 
 	 }
 	 
-	 public void insertUnfollow(Long userID, UserAccount unfollow){
+	 public void insertRegularUnfollow(Long userID, UserAccount unfollow){
 		 
 		 sf = HibernateUtil.getSessionFactory();
 		 session = sf.openSession();       
@@ -343,10 +354,10 @@ public class UserDao{
 	         UserAccount user = 
 	                    (UserAccount)session.get(UserAccount.class, userID); 
 	         
-	         unfollows = user.getUnfollows();
+	         unfollows = user.getRegularUnfollows();
 	         
 	         if(!unfollows.contains(unfollow)){	         
-	        	 user.getUnfollows().add(unfollow);
+	        	 user.getRegularUnfollows().add(unfollow);
 	        	 session.update(user); 
 	         }
 	         
@@ -361,22 +372,22 @@ public class UserDao{
 		 
 	 }
 	 
-	 public void insertSemanticRecommendation(Long userID, UserAccount semanticRecommendation){
+	 public void insertSemanticUnfollow(Long userID, UserAccount unfollow){
 		 
 		 sf = HibernateUtil.getSessionFactory();
 		 session = sf.openSession();       
 		 tx = null; 
 		 
-		 List<UserAccount> semanticRecommendations;
+		 List<UserAccount> unfollows;
 		 try{
 	         tx = session.beginTransaction();
 	         UserAccount user = 
 	                    (UserAccount)session.get(UserAccount.class, userID); 
 	         
-	         semanticRecommendations = user.getSemanticRecommendations();
+	         unfollows = user.getSemanticUnfollows();
 	         
-	         if(!semanticRecommendations.contains(semanticRecommendation)){	         
-	        	 user.getSemanticRecommendations().add(semanticRecommendation);
+	         if(!unfollows.contains(unfollow)){	         
+	        	 user.getSemanticUnfollows().add(unfollow);
 	        	 session.update(user); 
 	         }
 	         
@@ -390,27 +401,49 @@ public class UserDao{
 	      }
 		 
 	 }
-
-	 public void insertRegularRecommendation(Long userID, UserAccount regularRecommendation){
+	 
+	 public void insertSemanticRecommendation(Long userID, SemanticRecommendation semanticRecommendation){
 		 
 		 sf = HibernateUtil.getSessionFactory();
 		 session = sf.openSession();       
 		 tx = null; 
 		 
-		 List<UserAccount> regularRecommendations;
+		 	 
 		 try{
 	         tx = session.beginTransaction();
 	         UserAccount user = 
 	                    (UserAccount)session.get(UserAccount.class, userID); 
-	         
-	         regularRecommendations = user.getRegularRecommendations();
-	         
-	         if(!regularRecommendations.contains(regularRecommendation)){	         
-	        	 user.getRegularRecommendations().add(regularRecommendation);
-	        	 session.update(user); 
-	         }
-	         
+	        
+	                  
+	         user.getSemanticRecommendations().add(semanticRecommendation);
+	         session.update(user); 
+	        
+	         tx.commit();
+	      }catch (HibernateException e) {
+	         if (tx!=null) tx.rollback();
+	         e.printStackTrace(); 
+	      }finally {
+	         session.close(); 	        
+	      }
+		 
+	 }
+
+	 public void insertRegularRecommendation(Long userID, RegularRecommendation regularRecommendation){
+		 
+		 sf = HibernateUtil.getSessionFactory();
+		 session = sf.openSession();       
+		 tx = null; 
+		 
 			 
+		 try{
+	         tx = session.beginTransaction();
+	         UserAccount user = 
+	                    (UserAccount)session.get(UserAccount.class, userID); 
+	        
+	                  
+	         user.getRegularRecommendations().add(regularRecommendation);
+	         session.update(user); 
+	        
 	         tx.commit();
 	      }catch (HibernateException e) {
 	         if (tx!=null) tx.rollback();
@@ -488,6 +521,47 @@ public class UserDao{
 	      }finally {
 	         session.close(); 	        
 	      }
+	 }
+	 
+	 public void readUnfollows(){
+		 File file = new File("unfollows");
+	    	File afile[] = file.listFiles();
+	    	
+	    	StringTokenizer st;
+	    	String filename, user, type, linha;
+	    	BufferedReader lerArq;
+	    	UserAccount tUser, rec;
+	    	for (int i = 0; i < afile.length; i++) {
+	    		filename = afile[i].getName();
+	    		st = new StringTokenizer(filename, "-");
+	    		user = st.nextToken();
+	    		type = st.nextToken().replace(".txt", "");
+	    		    		
+	    		try {
+					lerArq = new BufferedReader(new FileReader("unfollows/"+filename));
+					linha = lerArq.readLine();
+					
+					tUser = getUserByScreenname(user, false);
+					System.out.println("Arquivo:  " + filename);
+					while(linha != null){					
+						
+						rec = getUserByScreenname(linha, false);
+						if(type.equals("1")){
+							insertRegularUnfollow(tUser.getIDUser(), rec);
+						}else{
+							insertSemanticUnfollow(tUser.getIDUser(), rec);
+						}
+						linha = lerArq.readLine();
+					}
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	    		
+	    	}
 	 }
 	
 }

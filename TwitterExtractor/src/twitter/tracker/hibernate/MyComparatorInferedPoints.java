@@ -1,13 +1,15 @@
 package twitter.tracker.hibernate;
 import java.util.Comparator;
 
+import persistence.entities.hibernate.UserInference;
 
-public class MyComparatorInferedPoints implements Comparator<TwitterAccount> {
+
+public class MyComparatorInferedPoints implements Comparator<UserInference> {
 
 	@Override
-	public int compare(TwitterAccount account1, TwitterAccount account2) {
+	public int compare(UserInference inf1, UserInference inf2) {
 		// TODO Auto-generated method stub
-		return account1.getInferedPoints() - account2.getInferedPoints();
+		return inf1.getInferedPoints() - inf2.getInferedPoints();
 	}
 
 }

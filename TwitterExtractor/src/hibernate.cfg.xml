@@ -29,6 +29,12 @@
     <mapping class="persistence.entities.hibernate.Tweet"/>
     <mapping class="persistence.entities.hibernate.Hashtag"/>
     <mapping class="persistence.entities.hibernate.URL"/>
+    <mapping class="persistence.entities.hibernate.RegularRecommendation"/>
+    <mapping class="persistence.entities.hibernate.RegularRecommendationID"/>
+    <mapping class="persistence.entities.hibernate.SemanticRecommendation"/>
+    <mapping class="persistence.entities.hibernate.SemanticRecommendationID"/>
+    <mapping class="persistence.entities.hibernate.UserInference"/>
+    <mapping class="persistence.entities.hibernate.UserInferenceID"/>
     
           
     </session-factory>

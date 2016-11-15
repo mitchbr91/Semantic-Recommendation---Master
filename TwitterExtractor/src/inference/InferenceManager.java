@@ -33,6 +33,7 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 import persistence.dao.hibernate.UserDao;
 import persistence.entities.hibernate.UserAccount;
+import persistence.entities.hibernate.UserInference;
 
 import com.clarkparsia.owlapi.explanation.BlackBoxExplanation;
 import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
@@ -40,6 +41,7 @@ import com.clarkparsia.owlapi.explanation.HSTExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.util.SilentExplanationProgressMonitor;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
+import twitter.tracker.hibernate.SemanticComparatorCosineSimilarity;
 import twitter.tracker.hibernate.MyComparatorInferedPoints;
 import twitter.tracker.hibernate.TwitterAccount;
 
@@ -120,7 +122,7 @@ public class InferenceManager {
              
         
         String targetU = null;
-        long tUser;
+        UserAccount tUser;
         
         for(String ontologyName: ontologies){
         	
@@ -187,16 +189,13 @@ public class InferenceManager {
 		        		System.out.println("Na und - ELSE");
 	        			ruleWeight = rulesWeights.get(rule);
 	        			//explanation = gen.getExplanations(axiomToExplain, 10);	        		
-		        		inferedPoints = ruleWeight*explanation.size();
+		        		//inferedPoints = ruleWeight*explanation.size();
 	        		}
 	        		
-	        		//inferedPoints = 1;
-	        		
-	        		//inf += ruleWeight*explanation.size();	        				
+	        		inferedPoints = 1;
+	        			        			        				
 	        		user.setInferedPoints(inferedPoints);
-	        		
-	        		//inf++;
-	        			 
+	        		 
 	        		twitterAccountList.add(user);        
 	        		System.out.println("Some inference: " + inferedUserName + " - Points: " + inferedPoints);       		
 	        		
@@ -245,16 +244,16 @@ public class InferenceManager {
         	//I need to convert from a TwitterAccount to a UserAccount
         	
         	
-        	tUser = daoUser.getUserByScreenname(targetU, false).getIDUser();
-        	
+        	tUser = daoUser.getUserByScreenname(targetU, false);
+        	UserInference userInference;
         	for(TwitterAccount ta: inferedFollowees.get(targetU)){
         		       		
         		System.out.println(targetU + " - Infered: " + ta.getName() + " - Points: " + ta.getInferedPoints());
         		inference = daoUser.getUserByScreenname(ta.getName(), false);
         		
         		if (inference != null){
-        			inference.setInferedPoints(ta.getInferedPoints());        		
-            		daoUser.insertInference(tUser, inference);
+        			userInference = new UserInference(tUser, inference, ta.getInferedPoints());
+            		daoUser.insertInference(tUser.getIDUser(), userInference);
         		}        		
         		
         	}
@@ -267,25 +266,25 @@ public class InferenceManager {
 
 	}
 	
-	public Map<String, List<TwitterAccount>> extractUsersWithNoInteractions(Map<String, List<TwitterAccount>> inferedUsers){
+	public Map<String, List<UserAccount>> extractUsersWithNoInteractions(){
 		
-		List<TwitterAccount> inferedSet;
+		List<UserInference> inferedSet;
 		List<UserAccount> followees;
 		boolean found = false;
-		Map<String, List<TwitterAccount>> usersWithNoInteractions = new HashMap<String, List<TwitterAccount>>();
+		Map<String, List<UserAccount>> usersWithNoInteractions = new HashMap<String, List<UserAccount>>();
 		int i = 0;		
-		List<TwitterAccount> users;
+		List<UserAccount> users;
 	
 		for(UserAccount user: daoUser.listUsers(true, false)){
 			
-			inferedSet = inferedUsers.get(user.getScreenName());			
+			inferedSet = user.getInferences();			
 			followees = user.getFollowees();
 			
 			if (inferedSet != null){
-				users = new ArrayList<TwitterAccount>();
+				users = new ArrayList<UserAccount>();
 				for(UserAccount followee: followees){
 					while(i < inferedSet.size() && !found){
-						if(followee.getScreenName().equals(inferedSet.get(i).getName())){
+						if(followee.getScreenName().equals(inferedSet.get(i).getInference().getScreenName())){
 							found = true;						
 						}
 						
@@ -293,7 +292,7 @@ public class InferenceManager {
 					}
 					
 					if(!found)
-						users.add(new TwitterAccount(followee.getScreenName()));	
+						users.add(followee);	
 					
 					
 					found = false;
@@ -317,7 +316,7 @@ public class InferenceManager {
 					//Ordering
 					inferedSet.sort(new MyComparatorInferedPoints());
 					for(int j = 0; j < usersWithLowInteractionSize; j++){
-						users.add(inferedSet.get(j));
+						users.add(inferedSet.get(j).getInference());
 					}			
 					
 					usersWithNoInteractions.put(user.getScreenName(), users);
@@ -332,29 +331,6 @@ public class InferenceManager {
 		
 	}
 	
-	/**
-	 * Return for each target user the list of his/her followees. This set will be used to calculate similarity between a user 
-	 * and his followees without analyse semantic interaction between users.
-	 * @return
-	 */
-	public Map<String, List<TwitterAccount>> getUsersNetwork(){
-		
-		Map<String, List<TwitterAccount>> usersNetwork = new HashMap<String, List<TwitterAccount>>();
-		
-		List<TwitterAccount> followees; 
-		for(UserAccount targetUser: daoUser.listUsers(true, false)){
-			
-			followees = new ArrayList<TwitterAccount>();
-			for(UserAccount followee: targetUser.getFollowees()){
-				followees.add(new TwitterAccount(followee.getScreenName()));
-			}
-			
-			usersNetwork.put(targetUser.getScreenName(), followees);			
-			
-		}
-		
-		return usersNetwork;
-	}
-
+	
 	
 }

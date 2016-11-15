@@ -60,6 +60,7 @@ public class HashtagDao {
 	        if (tx!=null) tx.rollback();
 	        e.printStackTrace(); 
 	    }finally {
+	    	session.clear();
 	        session.close();	        
 	    }
 	      
