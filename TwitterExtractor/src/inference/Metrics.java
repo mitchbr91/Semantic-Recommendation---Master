@@ -79,12 +79,13 @@ public class Metrics {
 		}		
 		
 		System.out.println("MAP: " + calculateMAP(recommendedFollowees, acceptedFollowees));
-		System.out.println("Recall: " + calculateRecall(metricRate, recommendedFollowees, acceptedFollowees));
+		calculatePrecisionRecall(metricRate, recommendedFollowees, acceptedFollowees, true);
+		calculatePrecisionRecall(metricRate, recommendedFollowees, acceptedFollowees, false);
 	}
 	
-	public void calculateMetrics(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<String>> acceptedFollowees){
+	public void calculateMetrics(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<String>> acceptedFollowees, boolean precision){
 		System.out.println("MAP: " + calculateMAP(recommendedFollowees, acceptedFollowees));
-		calculateRecall(metricRate, recommendedFollowees,acceptedFollowees);
+		calculatePrecisionRecall(metricRate, recommendedFollowees,acceptedFollowees, precision);
 	}
 	
 	private double calculateMAP(Map<String, List<String>> recommendedFollowees, Map<String, List<String>> acceptedFollowees){
@@ -148,35 +149,44 @@ public class Metrics {
 				
 	}
 	
-	private double calculateRecall(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<String>> acceptedFollowees){
+	private void calculatePrecisionRecall(int metricRate, Map<String, List<String>> recommendedFollowees, Map<String, List<String>> acceptedFollowees, boolean precision){
 		
 		
 		List<String> acceptedUsers;
 		List<String> recommendedUsers;
-		double averageRecallSum = 0;	
+		String metric = "";
 		
+		if(precision)
+			metric = "Precision";
+		else{
+			metric = "Recall";
+		}
 	
 	    for(String user :recommendedFollowees.keySet()){
 				
 	    	acceptedUsers = acceptedFollowees.get(user);
 			recommendedUsers = recommendedFollowees.get(user);
 						
-			averageRecallSum += calculateIndivualRecall(metricRate, acceptedUsers, recommendedUsers);
+			System.out.println("Target User: " + user + " - " + metric + ": " + 
+					calculateIndivualPrecisionRecall(metricRate, acceptedUsers, recommendedUsers, precision));
 				
-		}	
+		}		
 		
-		return averageRecallSum/recommendedFollowees.keySet().size();
 		
 	}
 	
-	private double calculateIndivualRecall(int metricRate, List<String> acceptedUsers, List<String> recommendedUsers){
+	private double calculateIndivualPrecisionRecall(int metricRate, List<String> acceptedUsers, List<String> recommendedUsers, boolean precision){
 		
 		boolean relevant;		
 		double relevantHits = 0;
 		int limit;
+		double metric;
 		
 		if(metricRate == 0){
-			limit = acceptedUsers.size();
+			if(precision)
+				limit = recommendedUsers.size();
+			else
+				limit = acceptedUsers.size();
 		}else{
 			limit = metricRate;
 		}
@@ -185,14 +195,17 @@ public class Metrics {
 			
 			relevant = checkUserRelevance(recommendedUsers.get(i), acceptedUsers);
 			
-			if(relevant){				
+			if(relevant){
 				relevantHits++;			
 			}
 		}			
 		
-		return relevantHits/recommendedUsers.size();
+		if(precision)
+			metric = relevantHits/recommendedUsers.size();
+		else
+			metric = relevantHits/acceptedUsers.size();
 		
-		
+		return metric;
 	}
 	
 	public Map<String, List<TwitterAccount>> generateMapInfered(){

@@ -188,11 +188,11 @@ public class InferenceManager {
 		        				        		
 		        		System.out.println("Na und - ELSE");
 	        			ruleWeight = rulesWeights.get(rule);
-	        			//explanation = gen.getExplanations(axiomToExplain, 10);	        		
-		        		//inferedPoints = ruleWeight*explanation.size();
+	        			explanation = gen.getExplanations(axiomToExplain, 10);	        		
+		        		inferedPoints = ruleWeight*explanation.size();
 	        		}
 	        		
-	        		inferedPoints = 1;
+	        		//inferedPoints = 1;
 	        			        			        				
 	        		user.setInferedPoints(inferedPoints);
 	        		 
@@ -307,8 +307,10 @@ public class InferenceManager {
 				 */
 				
 				
-				if(users.size() >= followees.size()/2)			
+				if(users.size() >= followees.size()/2){
+					System.out.println("USERS SIZE: " + users.size() + " - USERS WITH LOW INTERACTION");
 					usersWithNoInteractions.put(user.getScreenName(), users);
+				}
 				else{
 					
 					int usersWithLowInteractionSize = followees.size()/2 - users.size();

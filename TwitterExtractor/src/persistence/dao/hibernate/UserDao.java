@@ -524,7 +524,7 @@ public class UserDao{
 	 }
 	 
 	 public void readUnfollows(){
-		 File file = new File("unfollows");
+		 File file = new File("unfollows1");
 	    	File afile[] = file.listFiles();
 	    	
 	    	StringTokenizer st;
@@ -538,7 +538,7 @@ public class UserDao{
 	    		type = st.nextToken().replace(".txt", "");
 	    		    		
 	    		try {
-					lerArq = new BufferedReader(new FileReader("unfollows/"+filename));
+					lerArq = new BufferedReader(new FileReader("unfollows1/"+filename));
 					linha = lerArq.readLine();
 					
 					tUser = getUserByScreenname(user, false);
